@@ -33,7 +33,7 @@ def evaluate(process_data):
     
     saver = tf.train.Saver()    
     with tf.Session() as sess:
-        saver.restore(sess, tf.train.latest_checkpoint('./cnn_model'))
+        saver.restore(sess, './cnn_model\cnn.ckpt2.99603e-06-43100')#tf.train.latest_checkpoint('./cnn_model'))
         try:
             data, label = test_data_iter.__next__()
             while data:
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     process_data = process_data(train_data_path_list, test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path)
     
     batch_size = 256
-    learning_rate = 0.0000005    #0.0000001收敛较慢
+    learning_rate = 0.0001    #0.0000001收敛较慢
     out_len = 49
     epoch = 100
 #    train(learning_rate, batch_size, epoch, out_len, process_data)

@@ -162,5 +162,5 @@ if __name__ == '__main__':
 	process_data = process_data(train_data_path_list, test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path)
 	print('p_dict:{}'.format(process_data.p_dict))
 	print('postag_dict:{},word_dict:{}'.format(len(process_data.postag_dict), len(process_data.word_dict)))
-	train_data = process_data.generate_p_batch(2, process_data.train_data)
+	train_data = process_data.generate_p_batch(256, process_data.train_data)
 	print(train_data.__next__())
