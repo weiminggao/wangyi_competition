@@ -29,7 +29,7 @@ def evaluate(process_data):
     cnn_model = cnn_p.cnn_model(word_placeholder, postag_placeholder, \
                                 np.shape(process_data.word_embedding), np.shape(process_data.postag_embedding), \
                                 process_data.word_embedding, process_data.postag_embedding, out_len)
-    test_data_iter = process_data.generate_p_batch(batch_size, process_data.test_data) 
+    test_data_iter = process_data.generate_batch(batch_size, process_data.test_data) 
     
     saver = tf.train.Saver()    
     with tf.Session() as sess:
@@ -62,7 +62,7 @@ def train(learning_rate, batch_size, epoch, out_len, process_data):
     error = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels = out_placeholder, logits = cnn_model))
     train_step = tf.train.AdamOptimizer(learning_rate).minimize(error)
 
-    train_data_iter = process_data.generate_p_batch(batch_size, process_data.train_data)
+    train_data_iter = process_data.generate_batch(batch_size, process_data.train_data)
     saver = tf.train.Saver(max_to_keep = 10)	
     
     with tf.Session() as sess:
@@ -86,7 +86,7 @@ def train(learning_rate, batch_size, epoch, out_len, process_data):
                         print('step:{}, error:{}'.format(step, _error))
             except Exception as e:
                 print(e)
-                train_data_iter = process_data.generate_p_batch(batch_size, process_data.train_data)		
+                train_data_iter = process_data.generate_batch(batch_size, process_data.train_data)		
 
 if __name__ == '__main__':	
     train_data_path_list = ['../../../data/train_data.json']

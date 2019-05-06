@@ -21,7 +21,16 @@ class process_data(object):
         self.postag_dict = self.generate_postag_dict()
         self.postag_embedding = self.generate_postag_embedding() 
         self.word_embedding = self.generate_word_embedding()
-        self.feature_func_dict = {'word_embedding':self.parse_word_embedding, 'pos_embedding':self.parse_pos_embedding, 'postag':self.parse_postag}
+        self.p_embedding = self.generate_p_embedding()
+        self.feature_func_dict = {'word_embedding':self.parse_word_embedding, \
+                                  'pos_embedding':self.parse_pos_embedding, \
+                                  'postag':self.parse_postag, \
+                                  'sequence_lengths':self.parse_sequence_lengths, \
+                                  'p':self.parse_p, \
+                                  's':self.parse_s}
+        self.label_func_dict = {'p':self.parse_p_labels, \
+                                's':self.parse_s_labels, \
+                                'o':self.parse_o_labels}
         print('初始化完成')
 
     def save_word_embedding(self, saved_path, word_embedding):
@@ -73,6 +82,9 @@ class process_data(object):
                     index += 1
         return max_len, word_dict 
 
+    def generate_p_embedding(self):
+        return np.float32(np.random.uniform(-0.1, 0.1, size = [49, 100]))
+    
     def generate_postag_embedding(self):
         return np.float32(np.random.uniform(-0.1, 0.1, size = [25, 14]))
 
@@ -127,6 +139,26 @@ class process_data(object):
                 postag[i][j] = self.postag_dict[ele['pos']]
         return postag
 
+    def parse_sequence_lengths(self, batch_data):#未测试#
+        sequence_lengths = np.zeros(len(batch_data))
+        for i, (_, row) in enumerate(batch_data.iterrows()):
+            sequence_lengths[i] = len(row['postag'])
+        return sequence_lengths
+    
+    def parse_p(self, batch_data):#未测试#
+        p = np.zeros(len(batch_data))
+        for i, (_, row) in enumerate(batch_data.iterrows()):
+            p[i] = self.p_dict[row['p']]
+        return p
+    
+    def parse_s(self, batch_data):#未测试#
+        s = np.zeros(len(batch_data), 5)
+        for i, (_, row) in enumerate(batch_data.iterrows()):
+            for j, ele in enumerate(row['s']):
+                if ele in self.word_dict:
+                    s[i][j] = self.word_dict[ele]
+        return s
+    
     def parse_p_labels(self, batch_data):	#测试完毕
         p_labels = np.zeros([len(batch_data), len(self.p_dict)])
         for i, (_, row) in enumerate(batch_data.iterrows()):
@@ -134,14 +166,50 @@ class process_data(object):
                 p_labels[i][self.p_dict[ele['predicate']]] = 1
         return p_labels	
 
-    def parse_features(self, batch_data, features):  #测试完毕
+    '''
+    B I E O = [3, 2, 1, 0]
+    '''
+    def parse_s_labels(self, batch_data):#未测试#
+        s_labels = np.zeros([len(batch_data), self.max_len, 4])
+        for i, (_, row) in enumerate(batch_data.iterrows()):
+            for j, ele in enumerate(row['s_index']):
+                if len(ele) == 1:
+                    s_labels[i][ele[0]] = 3
+                else:
+                    s_labels[i][ele[0]] = 3
+                    s_labels[i][ele[-1]] = 2
+                    s_labels[i][ele[1]:ele[-1]] = 1
+        return s_labels
+    
+    '''
+    B I E O = [3, 2, 1, 0]
+    '''
+    def parse_o_labels(self, batch_data):#未测试#
+        o_labels = np.zeros([len(batch_data), self.max_len, 4])
+        for i, (_, row) in enumerate(batch_data.iterrows()):
+            for j, ele in enumerate(row['o_index']):
+                if len(ele) == 1:
+                    o_labels[i][ele[0]] = 3
+                else:
+                    o_labels[i][ele[0]] = 3
+                    o_labels[i][ele[-1]] = 2
+                    o_labels[i][ele[1]:ele[-1]] = 1
+        return o_labels
+        
+    def parse_features(self, batch_data, features, label_type):  #测试完毕
         batch_features = {}
         for feature in features:
             batch_features[feature] = self.feature_func_dict[feature](batch_data)
-        labels = self.parse_p_labels(batch_data)
+#        labels = self.parse_p_labels(batch_data)
+        labels = self.label_func_dict[label_type](batch_data)
         return batch_features, labels 	 	
 
-    def generate_p_batch(self, batch_size, data, features = ['word_embedding', 'postag']): #测试完毕
+    '''
+    features = ['word_embedding', 'postag'], label_type = 'p'
+    features = ['word_embedding', 'postag', 'p', 'sequence_lengths'], label_type = 's'
+    features = ['word_embedding', 'postag', 'p', 's', 'sequence_lengths'], label_type = 'o'
+    '''
+    def generate_batch(self, batch_size, data, features = ['word_embedding', 'postag'], label_type = 'p'): #测试完毕
         nums = len(data)
         index = 0
         while index < nums:
@@ -149,12 +217,6 @@ class process_data(object):
             batch_features, labels = self.parse_features(batch_data, features)
             yield batch_features, labels  
             index = index + batch_size 			
-   
-    def generate_ps_batch(self):
-        pass
-    
-    def generate_pso_batch(self):
-        pass
 
 if __name__ == '__main__':
 	train_data_path_list = ['../../data/train_data.json']

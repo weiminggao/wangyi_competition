@@ -14,7 +14,7 @@ def evaluate(process_data):
 def train(learning_rate, batch_size, epoch, process_data):
     word_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len]) 
     postag_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len]) 
-    p_placeholder = tf.placeholder(tf.int32, [None, 1])
+    p_placeholder = tf.placeholder(tf.int32, [None])
     s_placeholder = tf.placeholder(tf.int32, [None, 5])
     sequence_lengths = tf.placeholder(tf.int32, [None])
     out_placeholder = tf.placeholder(tf.float32, [None, 4])
@@ -28,7 +28,7 @@ def train(learning_rate, batch_size, epoch, process_data):
     error = tf.reduce_mean(-log_likelihood)
     train_step = tf.train.AdamOptimizer(learning_rate).minimize(error)
     
-    train_data_iter = process_data.generate_ps_batch(batch_size, process_data.train_data)
+    train_data_iter = process_data.generate_batch(batch_size, process_data.train_data,  features = ['word_embedding', 'postag', 'p', 's'], label_type = 'o')
     saver = tf.train.Saver(max_to_keep = 10)	
     
     with tf.Session() as sess:
@@ -56,7 +56,7 @@ def train(learning_rate, batch_size, epoch, process_data):
                         print('step:{}, error:{}'.format(step, _error))
             except Exception as e:
                 print(e)
-                train_data_iter = process_data.generate_ps_batch(batch_size, process_data.train_data)		
+                train_data_iter = process_data.generate_batch(batch_size, process_data.train_data,  features = ['word_embedding', 'postag', 'p', 's'], label_type = 'o')		
 
 if __name__ == '__main__':	
     train_data_path_list = ['../../../data/train_data.json']
