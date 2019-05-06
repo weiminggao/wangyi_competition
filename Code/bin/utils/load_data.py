@@ -84,7 +84,7 @@ class process_data(object):
             for ele in tqdm(data):
                 temp = ele.strip('\n').split('\t')
                 _dict[temp[0]] = list(map(lambda x:float(x), temp[1].split(',')))
-                f.close()
+            f.close()
             return _dict 
 		 #pre_word_embedding = convert_to_dict(self.pre_word_embedding_path)
 		 #baike_word_embedding = convert_to_dict(self.baike_word_embedding_path)
