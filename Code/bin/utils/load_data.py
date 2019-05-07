@@ -82,10 +82,10 @@ class process_data(object):
                     index += 1
         return max_len, word_dict 
 
-    def generate_p_embedding(self):
+    def generate_p_embedding(self):#测试完毕
         return np.float32(np.random.uniform(-0.1, 0.1, size = [49, 100]))
     
-    def generate_postag_embedding(self):
+    def generate_postag_embedding(self):#测试完毕
         return np.float32(np.random.uniform(-0.1, 0.1, size = [25, 14]))
 
     def generate_word_embedding(self):#测试完毕 
@@ -139,22 +139,24 @@ class process_data(object):
                 postag[i][j] = self.postag_dict[ele['pos']]
         return postag
 
-    def parse_sequence_lengths(self, batch_data):#未测试#
+    def parse_sequence_lengths(self, batch_data):#测试完毕
         sequence_lengths = np.zeros(len(batch_data))
         for i, (_, row) in enumerate(batch_data.iterrows()):
             sequence_lengths[i] = len(row['postag'])
         return sequence_lengths
     
-    def parse_p(self, batch_data):#未测试#
+    def parse_p(self, batch_data):#测试完毕
         p = np.zeros(len(batch_data))
         for i, (_, row) in enumerate(batch_data.iterrows()):
             p[i] = self.p_dict[row['p']]
         return p
     
-    def parse_s(self, batch_data):#未测试#
-        s = np.zeros(len(batch_data), 5)
+    def parse_s(self, batch_data):#测试完毕
+        s = np.zeros([len(batch_data), 5])
         for i, (_, row) in enumerate(batch_data.iterrows()):
             for j, ele in enumerate(row['s']):
+                if j >= 5:
+                    break
                 if ele in self.word_dict:
                     s[i][j] = self.word_dict[ele]
         return s
@@ -169,31 +171,37 @@ class process_data(object):
     '''
     B I E O = [3, 2, 1, 0]
     '''
-    def parse_s_labels(self, batch_data):#未测试#
-        s_labels = np.zeros([len(batch_data), self.max_len, 4])
+    def parse_s_labels(self, batch_data):   #测试完毕
+        s_labels = np.zeros([len(batch_data), self.max_len])
         for i, (_, row) in enumerate(batch_data.iterrows()):
             for j, ele in enumerate(row['s_index']):
-                if len(ele) == 1:
+                if ele[1] - ele[0] == 1:
                     s_labels[i][ele[0]] = 3
+                elif ele[1] - ele[0] == 2:
+                    s_labels[i][ele[0]] = 3
+                    s_labels[i][ele[0] + 1] = 1
                 else:
                     s_labels[i][ele[0]] = 3
-                    s_labels[i][ele[-1]] = 2
-                    s_labels[i][ele[1]:ele[-1]] = 1
+                    s_labels[i][ele[-1] - 1] = 1
+                    s_labels[i][ele[0] + 1 : ele[-1] - 1] = 2
         return s_labels
     
     '''
     B I E O = [3, 2, 1, 0]
     '''
-    def parse_o_labels(self, batch_data):#未测试#
-        o_labels = np.zeros([len(batch_data), self.max_len, 4])
+    def parse_o_labels(self, batch_data):  #测试完毕
+        o_labels = np.zeros([len(batch_data), self.max_len])
         for i, (_, row) in enumerate(batch_data.iterrows()):
             for j, ele in enumerate(row['o_index']):
-                if len(ele) == 1:
+                if ele[1] - ele[0] == 1:
                     o_labels[i][ele[0]] = 3
+                elif ele[1] - ele[0] == 2:
+                    o_labels[i][ele[0]] = 3
+                    o_labels[i][ele[0] + 1] = 1 
                 else:
                     o_labels[i][ele[0]] = 3
-                    o_labels[i][ele[-1]] = 2
-                    o_labels[i][ele[1]:ele[-1]] = 1
+                    o_labels[i][ele[-1] - 1] = 1
+                    o_labels[i][ele[0] + 1 : ele[-1] - 1] = 2
         return o_labels
         
     def parse_features(self, batch_data, features, label_type):  #测试完毕
@@ -214,19 +222,26 @@ class process_data(object):
         index = 0
         while index < nums:
             batch_data = data.iloc[index:index + batch_size, :]
-            batch_features, labels = self.parse_features(batch_data, features)
+            batch_features, labels = self.parse_features(batch_data, features, label_type)
             yield batch_features, labels  
             index = index + batch_size 			
 
 if __name__ == '__main__':
-	train_data_path_list = ['../../data/train_data.json']
-	test_data_path = '../../data/dev_data.json'
-	pre_word_embedding_path = '../../data/embedding/sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5.table'
-	baike_word_embedding_path = '../../data/embedding/sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5.table'
-	postag_path = '../../data/pos'
-	p_path = '../../data/all_50_schemas'
-	process_data = process_data(train_data_path_list, test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path)
-	print('p_dict:{}'.format(process_data.p_dict))
-	print('postag_dict:{},word_dict:{}'.format(len(process_data.postag_dict), len(process_data.word_dict)))
-#	train_data = process_data.generate_p_batch(256, process_data.train_data)
-#	print(train_data.__next__())
+    train_data_path_list = ['../../data/train_data_pso.json']
+    test_data_path = '../../data/dev_data_pso.json'
+    pre_word_embedding_path = '../../data/embedding/sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5.table'
+    baike_word_embedding_path = '../../data/embedding/sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5.table'
+    postag_path = '../../data/pos'
+    p_path = '../../data/all_50_schemas'
+    process_data = process_data(train_data_path_list, test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path)
+    print('p_dict:{}'.format(process_data.p_dict))
+    print('postag_dict:{},word_dict:{}'.format(len(process_data.postag_dict), len(process_data.word_dict)))
+    train_data = process_data.generate_batch(5, process_data.train_data, features = ['word_embedding', 'postag', 'p', 's', 'sequence_lengths'], label_type = 'o')
+    d, l = train_data.__next__()
+    for eles in d['s']:
+        for ele in eles:
+            for item in process_data.word_dict.items():
+                if item[1] == ele:
+                    print(item[0])
+                
+            

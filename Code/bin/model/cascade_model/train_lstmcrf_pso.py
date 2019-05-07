@@ -17,7 +17,7 @@ def train(learning_rate, batch_size, epoch, process_data):
     p_placeholder = tf.placeholder(tf.int32, [None])
     s_placeholder = tf.placeholder(tf.int32, [None, 5])
     sequence_lengths = tf.placeholder(tf.int32, [None])
-    out_placeholder = tf.placeholder(tf.float32, [None, 4])
+    out_placeholder = tf.placeholder(tf.float32, [None, process_data.max_len])
     
     pso_model = pso_lstmcrf.pso_lstmcrf_model(word_placeholder, postag_placeholder, p_placeholder, s_placeholder, \
                                              np.shape(process_data.word_embedding), np.shape(process_data.postag_embedding), \
@@ -59,8 +59,8 @@ def train(learning_rate, batch_size, epoch, process_data):
                 train_data_iter = process_data.generate_batch(batch_size, process_data.train_data,  features = ['word_embedding', 'postag', 'p', 's'], label_type = 'o')		
 
 if __name__ == '__main__':	
-    train_data_path_list = ['../../../data/train_data.json']
-    test_data_path = '../../../data/dev_data.json'
+    train_data_path_list = ['../../../data/train_data_pso.json']
+    test_data_path = '../../../data/dev_data_pso.json'
     pre_word_embedding_path = '../../../data/embedding/sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5.table'
     baike_word_embedding_path = '../../../data/embedding/sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5.table'
     postag_path = '../../../data/pos'
