@@ -17,7 +17,7 @@ def train(learning_rate, batch_size, epoch, process_data):
     p_placeholder = tf.placeholder(tf.int32, [None])
     s_placeholder = tf.placeholder(tf.int32, [None, 5])
     sequence_lengths = tf.placeholder(tf.int32, [None])
-    out_placeholder = tf.placeholder(tf.float32, [None, process_data.max_len])
+    out_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len])
     
     pso_model = pso_lstmcrf.pso_lstmcrf_model(word_placeholder, postag_placeholder, p_placeholder, s_placeholder, \
                                              np.shape(process_data.word_embedding), np.shape(process_data.postag_embedding), \
@@ -28,7 +28,8 @@ def train(learning_rate, batch_size, epoch, process_data):
     error = tf.reduce_mean(-log_likelihood)
     train_step = tf.train.AdamOptimizer(learning_rate).minimize(error)
     
-    train_data_iter = process_data.generate_batch(batch_size, process_data.train_data,  features = ['word_embedding', 'postag', 'p', 's'], label_type = 'o')
+    train_data_iter = process_data.generate_batch(batch_size, process_data.train_data, \
+                                                  features = ['word_embedding', 'postag', 'p', 's', 'sequence_lengths'], label_type = 'o')
     saver = tf.train.Saver(max_to_keep = 10)	
     
     with tf.Session() as sess:
@@ -52,7 +53,7 @@ def train(learning_rate, batch_size, epoch, process_data):
                     data, label = train_data_iter.__next__()
                     if step % 100 == 0:
                         print(step)
-                        saver.save(sess, './lstmcrf_pso_modle/lstmcrf_pso.ckpt'+str(_error), global_step = step, write_meta_graph=False)
+                        saver.save(sess, './lstmcrf_pso_model/lstmcrf_pso.ckpt'+str(_error), global_step = step, write_meta_graph=False)
                         print('step:{}, error:{}'.format(step, _error))
             except Exception as e:
                 print(e)
@@ -67,7 +68,7 @@ if __name__ == '__main__':
     p_path = '../../../data/all_50_schemas'
     process_data = process_data(train_data_path_list, test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path)
     
-    batch_size = 256
+    batch_size = 128
     learning_rate = 0.0001    #0.0000001收敛较慢
     epoch = 100
     train(learning_rate, batch_size, epoch, process_data)

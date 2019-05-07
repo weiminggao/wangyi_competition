@@ -16,7 +16,7 @@ def train(learning_rate, batch_size, epoch, process_data):
     postag_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len]) 
     p_placeholder = tf.placeholder(tf.int32, [None])
     sequence_lengths = tf.placeholder(tf.int32, [None])
-    out_placeholder = tf.placeholder(tf.float32, [None, process_data.max_len])
+    out_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len])
     
     ps_model = ps_lstmcrf.ps_lstmcrf_model(word_placeholder, postag_placeholder, p_placeholder, np.shape(process_data.word_embedding), np.shape(process_data.postag_embedding), \
                                            np.shape(process_data.p_embedding), process_data.word_embedding, process_data.postag_embedding, process_data.p_embedding, sequence_lengths, batch_size)
@@ -24,7 +24,8 @@ def train(learning_rate, batch_size, epoch, process_data):
     error = tf.reduce_mean(-log_likelihood)
     train_step = tf.train.AdamOptimizer(learning_rate).minimize(error)
     
-    train_data_iter = process_data.generate_batch(batch_size, process_data.train_data,  features = ['word_embedding', 'postag', 'p'], label_type = 's')
+    train_data_iter = process_data.generate_batch(batch_size, process_data.train_data,  \
+                                                  features = ['word_embedding', 'postag', 'p', 'sequence_lengths'], label_type = 's')
     saver = tf.train.Saver(max_to_keep = 10)	
     
     with tf.Session() as sess:
@@ -46,7 +47,7 @@ def train(learning_rate, batch_size, epoch, process_data):
                     data, label = train_data_iter.__next__()
                     if step % 100 == 0:
                         print(step)
-                        saver.save(sess, './lstmcrf_ps_modle/lstmcrf_ps.ckpt'+str(_error), global_step = step, write_meta_graph=False)
+                        saver.save(sess, './lstmcrf_ps_model/lstmcrf_ps.ckpt'+str(_error), global_step = step, write_meta_graph=False)
                         print('step:{}, error:{}'.format(step, _error))
             except Exception as e:
                 print(e)
@@ -61,7 +62,7 @@ if __name__ == '__main__':
     p_path = '../../../data/all_50_schemas'
     process_data = process_data(train_data_path_list, test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path)
     
-    batch_size = 256
+    batch_size = 128
     learning_rate = 0.0001    #0.0000001收敛较慢
     epoch = 100
     train(learning_rate, batch_size, epoch, process_data)

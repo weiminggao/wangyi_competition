@@ -227,8 +227,8 @@ class process_data(object):
             index = index + batch_size 			
 
 if __name__ == '__main__':
-    train_data_path_list = ['../../data/train_data_pso.json']
-    test_data_path = '../../data/dev_data_pso.json'
+    train_data_path_list = ['../../data/train_data_ps.json']
+    test_data_path = '../../data/dev_data_ps.json'
     pre_word_embedding_path = '../../data/embedding/sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5.table'
     baike_word_embedding_path = '../../data/embedding/sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5.table'
     postag_path = '../../data/pos'
@@ -236,12 +236,6 @@ if __name__ == '__main__':
     process_data = process_data(train_data_path_list, test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path)
     print('p_dict:{}'.format(process_data.p_dict))
     print('postag_dict:{},word_dict:{}'.format(len(process_data.postag_dict), len(process_data.word_dict)))
-    train_data = process_data.generate_batch(5, process_data.train_data, features = ['word_embedding', 'postag', 'p', 's', 'sequence_lengths'], label_type = 'o')
-    d, l = train_data.__next__()
-    for eles in d['s']:
-        for ele in eles:
-            for item in process_data.word_dict.items():
-                if item[1] == ele:
-                    print(item[0])
-                
-            
+    train_data = process_data.generate_batch(5, process_data.train_data, features = ['word_embedding', 'postag', 'p', 'sequence_lengths'], label_type = 's')
+    print(train_data.__next__())
+                            

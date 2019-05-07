@@ -8,7 +8,7 @@ def ps_lstmcrf_model(word, postag, p, word_embedding_size, postag_embedding_size
         word_embed = tf.nn.embedding_lookup(word_embedding, word)
         postag_embedding = tf.get_variable('postag_embedding', initializer = postag_embedding)#shape = [25, 14])
         postag_embed = tf.nn.embedding_lookup(postag_embedding, postag)
-        p_embedding = tf.get_variable('p_embedding', intializer = p_embedding)
+        p_embedding = tf.get_variable('p_embedding', initializer = p_embedding)
         p_embed = tf.nn.embedding_lookup(p_embedding, p)
 
     #input_representation
@@ -36,15 +36,15 @@ def ps_lstmcrf_model(word, postag, p, word_embedding_size, postag_embedding_size
         cell_bw = tf.contrib.rnn.LSTMCell(512)
         (output_fw, output_bw), _ = tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, lstm_input, \
                                                                     sequence_length = sequence_lengths, \
-                                                                    initial_state_fw = cell_fw.zero_state(batch_size = batch_size, dtype = tf.float64), \
-                                                                    initial_state_bw = cell_bw.zero_state(batch_size = batch_size, dtype = tf.float64))
+                                                                    initial_state_fw = cell_fw.zero_state(batch_size = batch_size, dtype = tf.float32), \
+                                                                    initial_state_bw = cell_bw.zero_state(batch_size = batch_size, dtype = tf.float32))
         context = tf.concat([output_fw, output_bw], axis = -1)
         context = tf.reshape(context, [-1, 1024])
         
     #crf_decode
     with tf.name_scope('output'):
         w = tf.get_variable('w', shape = [1024, 4], dtype = tf.float32)
-        b = tf.get_variable('b', shape = [4], dtyep = tf.float32)
+        b = tf.get_variable('b', shape = [4], dtype = tf.float32)
         prediction = tf.matmul(context, w) + b
         prediction = tf.reshape(prediction, shape = [-1, 198, 4])
     return prediction

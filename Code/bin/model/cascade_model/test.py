@@ -36,7 +36,7 @@ import numpy as np
 #		it = iter()
 
 #a = tf.constant([[[2,3,4], [5,6,7]], [[1,2,3], [2,4,6]], [[4,6,8], [3,5,7]]], dtype = tf.float32)
-a = tf.constant([[[2, 9, 10],[3, 10, 12],[0, 2, 7]], [[4, 3, 3],[5, 4, 4],[6, 4, 6]]], dtype = tf.float32)
+#a = tf.constant([[[2, 9, 10],[3, 10, 12],[0, 2, 7]], [[4, 3, 3],[5, 4, 4],[6, 4, 6]]], dtype = tf.float32)
 #a = tf.reshape(a, [-1, 3])
 #b = tf.constant([[1], [2], [3]], dtype = tf.float32)
 #b = tf.Variable([[[100], [109]],[[2], [24]],[[3], [5]]], dtype = tf.float32)
@@ -58,8 +58,12 @@ a = tf.constant([[[2, 9, 10],[3, 10, 12],[0, 2, 7]], [[4, 3, 3],[5, 4, 4],[6, 4,
 #index = tf.reduce_max(sequence_lengths)
 #loss = tf.reshape(loss, shape = [-1, index])
 #losses = tf.boolean_mask(loss, mask)
+a = tf.placeholder(tf.int32, [None])
+b = np.zeros(10)
+b[1] = 10
+print(b)
 with tf.Session() as sess:
     sess.run(tf.initialize_all_variables())
 #    print(sess.run(output_fw))
 #    print(sess.run(output_bw))
-    print(sess.run(tf.reduce_mean(a, axis = 1)))
+    print(sess.run(a, feed_dict = {a:b}))
