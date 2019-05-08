@@ -53,7 +53,7 @@ def train(learning_rate, batch_size, epoch, process_data):
                         print('step:{}, error:{}'.format(step, _error))
             except Exception as e:
                 print(e)
-                train_data_iter = process_data.generate_batch(batch_size, process_data.train_data,  features = ['word_embedding', 'postag', 'p'], label_type = 's')		
+                train_data_iter = process_data.generate_batch(batch_size, process_data.train_data,  features = ['word_embedding', 'postag', 'p', 'sequence_lengths'], label_type = 's')
 
 if __name__ == '__main__':	
     train_data_path_list = ['../../../data/train_data_ps.json']
