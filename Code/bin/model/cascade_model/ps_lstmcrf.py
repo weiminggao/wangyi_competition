@@ -35,9 +35,9 @@ def ps_lstmcrf_model(word, postag, p, word_embedding_size, postag_embedding_size
         cell_fw = tf.contrib.rnn.LSTMCell(512)
         cell_bw = tf.contrib.rnn.LSTMCell(512)
         (output_fw, output_bw), _ = tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, lstm_input, \
-                                                                    sequence_length = sequence_lengths, \
-                                                                    initial_state_fw = cell_fw.zero_state(batch_size = batch_size, dtype = tf.float32), \
-                                                                    initial_state_bw = cell_bw.zero_state(batch_size = batch_size, dtype = tf.float32))
+                                                                    sequence_length = sequence_lengths, dtype = tf.float32)
+#                                                                    initial_state_fw = cell_fw.zero_state(batch_size = batch_size, dtype = tf.float32), \
+#                                                                    initial_state_bw = cell_bw.zero_state(batch_size = batch_size, dtype = tf.float32))
         context = tf.concat([output_fw, output_bw], axis = -1)
         context = tf.reshape(context, [-1, 1024])
         
