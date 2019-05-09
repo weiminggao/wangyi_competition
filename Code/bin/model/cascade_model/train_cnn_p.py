@@ -30,7 +30,7 @@ def evaluate(process_data):
                                 np.shape(process_data.word_embedding), np.shape(process_data.postag_embedding), \
                                 process_data.word_embedding, process_data.postag_embedding, out_len)
     test_data_iter = process_data.generate_batch(batch_size, process_data.test_data) 
-    
+    print(batch_size)
     saver = tf.train.Saver()    
     with tf.Session() as sess:
         saver.restore(sess, './cnn_model\cnn.ckpt2.99603e-06-43100')#tf.train.latest_checkpoint('./cnn_model'))
