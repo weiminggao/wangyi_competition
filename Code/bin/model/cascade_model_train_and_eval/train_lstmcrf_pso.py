@@ -3,6 +3,7 @@ import tensorflow as tf
 import numpy as np
 import sys
 sys.path.append('../../utils')
+sys.path.append('../cascade_model')
 from load_data import process_data
 import pso_lstmcrf
 
