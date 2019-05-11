@@ -7,7 +7,7 @@ sys.path.append('../cascade_model')
 from load_data import process_data
 import ps_lstmcrf
 
-RESTORE = False
+RESTORE = True
 
 def evaluate(process_data):
     pred_correct_num = 0

@@ -1,5 +1,5 @@
 #import tensorflow as tf 
-import numpy as np 
+#import numpy as np 
 #
 #embedding_0 = tf.Variable(np.identity(5), dtype = tf.float32)
 #embeded_0 = tf.nn.embedding_lookup(embedding_0, [[1,2,4], [2, 0, 4]])
@@ -116,27 +116,108 @@ import numpy as np
 #        print(n.name)
 #    print(sess.run(transition_params))
 #    print(sess.run(tf.get_default_graph().get_tensor_by_name('log_likelihood:0')))
-def convert_to_num_str(tags):
-    num_str = []
-    for i in range(len(tags)):
-        if tags[i] == 3:#表示B
-            start_flag = str(i)
-            j = i + 1
-            while j < len(tags) \
-            and tags[j] != 0 \
-            and tags[j] != 3:
-                j += 1
-            start_flag += str(j)
-            num_str.append(start_flag)
-    return num_str
+#def convert_to_num_str(tags):
+#    num_str = []
+#    for i in range(len(tags)):
+#        if tags[i] == 3:#表示B
+#            start_flag = str(i)
+#            j = i + 1
+#            while j < len(tags) \
+#            and tags[j] != 0 \
+#            and tags[j] != 3:
+#                j += 1
+#            start_flag += str(j)
+#            num_str.append(start_flag)
+#    return num_str
         
 #random.randrange(1,100,2)
-import random
-a = []
-for i in range(20): 
-    a.append(random.randint(0, 3))
+#import random
+#a = []
+#for i in range(20): 
+#    a.append(random.randint(0, 3))
 #print(a)
 #    [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
-a =  [0,3,2,1,0,0,0,3,1,3,3 ,2, 1, 3, 2, 2, 2, 1, 3]
-print(convert_to_num_str(a))
-           
+#a =  [3,3,2,1,0,0,0,3,1,3,3 ,2, 1, 3, 2, 2, 2, 1, 0,0,0]
+#print(convert_to_num_str(a))
+
+#import tensorflow as tf
+##a = tf.Variable([111,0,0,0])
+##b = tf.Variable([222,0,0,0])
+##saver = tf.train.Saver()
+##with tf.Session() as sess:
+##    sess.run(tf.initialize_all_variables())
+##    saver.save(sess, './test.ckpt1')
+#g1 = tf.Graph()
+#g2 = tf.Graph()
+##g3 = tf.Graph()
+#with g1.as_default():
+#    a = tf.Variable([0,0,0,0])
+#    b = tf.Variable([0,0,0,0])
+#    saver = tf.train.Saver()
+#    init_op = tf.initialize_all_variables()
+#    sess = tf.Session(graph = g1)
+#    sess.run(init_op)
+###    c = a + b
+#with g2.as_default():
+#    a1 = tf.Variable([110,0,0,0])
+#    b1 = tf.Variable([120,0,0,0])
+#    saver1 = tf.train.Saver()
+#    init_op1 = tf.initialize_all_variables()
+#    sess1 = tf.Session(graph = g2)
+#    sess1.run(init_op1)
+#print(sess.run(a))
+#print(sess1.run(a1))
+###    c = a + b
+#with g3.as_default():
+#    #a = tf.constant([1,2,3,4])
+#    a = tf.Variable([110,0,0,0], name = 'c1')
+#    b = tf.Variable([120,0,0,0], name = 'c2')
+##    c = a + b
+#sess = tf.Session(graph = g1)
+#sess.run(init_op)
+#saver.restore(sess, './test.ckpt')
+#sess1 = tf.Session(graph = g2)
+#sess1.run(init_op1)
+#saver1.restore(sess1, './test.ckpt1')
+#for i in range(10):
+#    print(sess.run(a))
+#    print(sess1.run(a1))
+#sess.close()
+#sess1.close()
+#with tf.Session(graph = g1) as sess:
+##    sess.run(tf.global_variables_initializer())
+###    saver.save(sess,'./test.ckpt')
+#    saver.restore(sess, './test.ckpt')
+##    v_names = [v.name for v in tf.all_variables()]
+#    print(sess.run(a))
+##    print(sess.run(c))
+#with tf.Session(graph = g2) as sess:
+##    sess.run(tf.initialize_all_variables())
+##    v_names = [v.name for v in tf.all_variables()]
+##    print(sess.run(a))
+##    saver.save(sess, './test.cpkt1')
+#    saver1.restore(sess, './test.ckpt1')
+#    print(sess.run(a1))
+#    print(sess.run(b))
+#a = tf.placeholder(tf.int32)
+#b = tf.placeholder(tf.int32)
+#c = tf.placeholder(tf.int32)
+#d = a + b
+#e = c + b
+#with tf.Session() as sess:
+#    sess.run(tf.global_variables_initializer())
+#    print(sess.run(d, feed_dict = {a:4, b:5}))
+#    print(sess.run(e, feed_dict = {b:6, c:9}))
+#def a(p1 = 1, p2 = 2, p3 = 4):
+#    print(p1)
+#    print(p2)
+#    print(p3)
+#c = {'p1':10, 'p2':20, 'p3':30}
+#a(**c)
+import pandas as pd
+data = {'state': ['Ohio', 'Ohio', 'Ohio', 'Nevada', 'Nevada'],'year': [2000, 2001, 2002, 2001, 2002],'pop': [1.5, 1.7, 3.6, 2.4, 2.9]}
+frame1 = pd.DataFrame(data)
+print(frame1)
+d = frame1.iloc[0:2, :]
+print(d)
+print(d['pop'])

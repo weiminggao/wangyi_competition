@@ -1,6 +1,5 @@
+# -*- coding: utf-8 -*-
 import tensorflow as tf
-import os
-import json
 import numpy as np
 import sys
 sys.path.append('../../utils')
@@ -26,7 +25,6 @@ def evaluate(process_data):
     
     word_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len]) 
     postag_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len]) 
-    out_placeholder = tf.placeholder(tf.float32, [None, out_len]) 
     cnn_model = cnn_p.cnn_model(word_placeholder, postag_placeholder, \
                                 np.shape(process_data.word_embedding), np.shape(process_data.postag_embedding), \
                                 process_data.word_embedding, process_data.postag_embedding, out_len)
@@ -38,8 +36,7 @@ def evaluate(process_data):
             data, label = test_data_iter.__next__()
             while data:
                 predict_output = sess.run(cnn_model, feed_dict = {word_placeholder:data['word_embedding'], \
-                                                                postag_placeholder:data['postag'], \
-                                                                out_placeholder:label})
+                                                                postag_placeholder:data['postag']})
                 predict_output = sess.run(tf.nn.sigmoid(predict_output))
                 stats(predict_output, label)
                 data, label = test_data_iter.__next__()

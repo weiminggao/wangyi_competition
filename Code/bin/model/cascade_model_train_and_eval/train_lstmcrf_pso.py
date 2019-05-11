@@ -136,5 +136,5 @@ if __name__ == '__main__':
     batch_size = 256
     learning_rate = 0.001    #0.0000001收敛较慢
     epoch = 100
-    train(learning_rate, batch_size, epoch, process_data)
+#    train(learning_rate, batch_size, epoch, process_data)
     evaluate(process_data)
