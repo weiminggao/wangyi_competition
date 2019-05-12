@@ -220,4 +220,29 @@ frame1 = pd.DataFrame(data)
 print(frame1)
 d = frame1.iloc[0:2, :]
 print(d)
-print(d['pop'])
+#print(d['pop'])
+#import tensorflow as tf
+#
+#g1 = tf.Graph()
+#g2 = tf.Graph()
+#with g1.as_default():
+#    a = tf.placeholder(tf.float32)
+#    b = tf.placeholder(tf.float32)
+#    c = a + b
+#    v_names = [v.name for v in tf.all_variables()]
+#    print(v_names)
+#with g2.as_default():
+#    a1 = tf.placeholder(tf.float32)
+#    b1 = tf.placeholder(tf.float32)
+#    c1 = a + b
+#    v_names = [v.name for v in tf.all_variables()]
+#    print(v_names)
+#with tf.Session(graph = g1) as sess:
+#    sess.run(tf.global_variables_initializer())
+#    print(sess.run(c, feed_dict = {a:1, b:2}))
+#def a(b, c, d):
+#    print(b)
+#    print(c)
+#    print(d)
+#f = ((1,2,3),(4,5,6))
+#a(*f[0])

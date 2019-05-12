@@ -8,12 +8,43 @@ from load_data import process_data
 import cnn_p
 import ps_lstmcrf
 import pso_lstmcrf
+import tqdm
 
 model_registry = {'p':cnn_p.cnn_model, 
                   'ps':ps_lstmcrf.ps_lstmcrf_model, 
                   'pso':pso_lstmcrf.pso_lstmcrf_model}
 
-def decorator_model(model_type, model, seq_and_out_placeholder):
+def generate_model_placeholder_list(model_type, process_data):
+    word_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len]) 
+    postag_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len])
+    if model_type == 'P':
+        return ((word_placeholder, postag_placeholder, \
+                 np.shape(process_data.word_embedding), np.shape(process_data.postag_embedding), \
+                 process_data.word_embedding, process_data.postag_embedding, out_len),
+                ())
+    elif model_type == 'ps':
+        p_placeholder = tf.placeholder(tf.int32, [None])
+        sequence_lengths = tf.placeholder(tf.int32, [None])
+        out_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len])
+        batch_length = tf.placeholder(tf.int32)
+        return ((word_placeholder, postag_placeholder, p_placeholder, \
+                 np.shape(process_data.word_embedding), np.shape(process_data.postag_embedding), np.shape(process_data.p_embedding), \
+                 process_data.word_embedding, process_data.postag_embedding, process_data.p_embedding, sequence_lengths, batch_length), 
+                (sequence_lengths, out_placeholder))
+    elif model_type == 'pso':
+        p_placeholder = tf.placeholder(tf.int32, [None])
+        s_placeholder = tf.placeholder(tf.int32, [None, 5])
+        sequence_lengths = tf.placeholder(tf.int32, [None])
+        out_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len])
+        batch_length = tf.placeholder(tf.int32)
+        return ((word_placeholder, postag_placeholder, p_placeholder, s_placeholder, \
+                 np.shape(process_data.word_embedding), np.shape(process_data.postag_embedding), np.shape(process_data.p_embedding), \
+                 process_data.word_embedding, process_data.postag_embedding, process_data.p_embedding, sequence_lengths, batch_length), \
+                (sequence_lengths, out_placeholder))
+    else:
+        raise '无效的模型'
+
+def decorate_model(model_type, model, seq_and_out_placeholder):
     if model_type == 'p':
         return tf.nn.sigmoid(model)
     elif model_type == 'ps' or model_type == 'pso':
@@ -23,84 +54,113 @@ def decorator_model(model_type, model, seq_and_out_placeholder):
     else:
         raise '无效的模型'
         
-def generate_model_and_sess(model_type, placeholder_list, load_path):
+def generate_model_and_sess(model_type, process_data, load_path):
     global model_registry
     graph = tf.Graph()
     with graph.as_graph_def():
+        placeholder_list = generate_model_placeholder_list(model_type, process_data)
         model = model_registry[model_type](*placeholder_list[0])
-        model = decorator_model(model_type, model, placeholder_list[1])
+        model = decorate_model(model_type, model, placeholder_list[1])
         saver = tf.train.Saver()
     sess = tf.Session(graph)
     saver.restore(sess, load_path)
-    return model, sess    
+    return placeholder_list[0], model, sess    
 
-def convert_pspred_to_wordindex():
-    pass
- 
+def convert_ppred_to_wordsindex(p_pred, p_dict):
+    p_indexs = list(filter(lambda x : p_pred[x] > 0.5, range(0, len(p_pred))))
+    p_words = []
+    for p_index in p_indexs:
+        for key, value in p_dict.items():
+            if p_index == value:
+                p_words.append(key)
+    return p_words, p_indexs
+    
+def convert_psopred_to_wordsindex(pso_pred, postag, word_dict):
+    pso_indexs = [0] * 5
+    pso_words = []
+    words_position = []
+    i = 0
+    
+    while i < len(pso_pred):
+        if pso_pred[i] == 3:
+            word_position = []
+            word_position.append(i)
+            i = i + 1
+            while i < len(pso_pred) and pso_pred[i] != 3 and pso_pred[i] != 0:
+                i = i + 1
+            word_position.append(i)
+            words_position.append(word_position)
+    
+    for word_position in words_position:
+        words = ''
+        for j, position in enumerate(range(word_position[0], word_position[1])):
+            words += postag[position]['word']
+            for key, value in word_dict.items():
+                if key == postag[position]['word'] and j < 5:
+                    pso_indexs[j] = value
+        pso_words.append(words)
+    
+    return pso_words, pso_indexs
+
 def stats(process_data, predict_spo_lists):
-    pass
+    pred_correct_num = 0
+    pred_num = 0
+    real_num = 0
+    for i, rows in tqdm(process_data.test_data.iterrows()):
+        real_num += len(rows['spo_list'])
+        pred_num += len(predict_spo_lists[i]['spo_list'])
+        compare_spo_list = list(map(lambda x : {'predicate':x['predicate'], \
+                                                'subject':x['subject'], \
+                                                'object':x['object']}, rows['spo_list']))
+        for predict_spo in predict_spo_lists[i]['spo_list']:
+            if predict_spo in compare_spo_list:
+                pred_correct_num += 1
+    precision = pred_correct_num / pred_num
+    recall = pred_correct_num / real_num
+    f1 = (2 * precision * recall)/(precision + recall)
+    return precision, recall, f1
     
-def evaluate(process_data):    
-    word_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len]) 
-    postag_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len]) 
-    p_placeholder = tf.placeholder(tf.int32, [None])
-    s_placeholder = tf.placeholder(tf.int32, [None, 5])
-    sequence_lengths = tf.placeholder(tf.int32, [None])
-    out_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len])
-    batch_length = tf.placeholder(tf.int32)
-    
-    p_model, p_sess = generate_model_and_sess('p', ((word_placeholder, postag_placeholder, \
-                                                    np.shape(process_data.word_embedding), np.shape(process_data.postag_embedding), \
-                                                    process_data.word_embedding, process_data.postag_embedding, out_len)), \
-                                              './cnn_model\cnn.ckpt2.99603e-06-43100')
-    ps_model, ps_sess = generate_model_and_sess('ps', ((word_placeholder, postag_placeholder, p_placeholder, 
-                                                       np.shape(process_data.word_embedding), np.shape(process_data.postag_embedding), np.shape(process_data.p_embedding), \
-                                                       process_data.word_embedding, process_data.postag_embedding, process_data.p_embedding, sequence_lengths, batch_length), 
-                                                       (sequence_lengths, out_placeholder)), \
-                                                './lstmcrf_ps_model\lstmcrf_ps.ckpt0.0014773-72100')
-    pso_model, pso_sess = generate_model_and_sess('pso', ((word_placeholder, postag_placeholder, p_placeholder, s_placeholder, \
-                                                          np.shape(process_data.word_embedding), np.shape(process_data.postag_embedding), np.shape(process_data.p_embedding), \
-                                                          process_data.word_embedding, process_data.postag_embedding, process_data.p_embedding, sequence_lengths, batch_length), \
-                                                          (sequence_lengths, out_placeholder)), \
-                                                  './lstmcrf_pso_model/')#TODO
+def evaluate(process_data):        
+    p_placeholder_list, p_model, p_sess = generate_model_and_sess('p', './cnn_model\cnn.ckpt2.99603e-06-43100')
+    ps_placeholder_list, ps_model, ps_sess = generate_model_and_sess('ps', './lstmcrf_ps_model\lstmcrf_ps.ckpt0.0014773-72100')
+    pso_placeholder_list, pso_model, pso_sess = generate_model_and_sess('pso', './lstmcrf_pso_model')#TODO
         
-    test_data_iter = process_data.generate_batch(batch_size, process_data.test_data, \
-                                                 features = ['word_embedding', 'postag'], label_type = 'p')
+    test_data_iter = process_data.generate_batch(batch_size, process_data.test_data, features = ['word_embedding', 'postag'], label_type = 'p')
     offset = 0
     predict_spo_lists = []
     try:
         data, label = test_data_iter.__next__()
-        p_lists = p_sess.run(p_model, feed_dict = {word_placeholder:data['word_embedding'], \
-                                                   postag_placeholder:data['postag']})
+        p_lists = p_sess.run(p_model, feed_dict = {p_placeholder_list[0]:data['word_embedding'], \
+                                                   p_placeholder_list[1]:data['postag']})
         
         for i, p_list in enumerate(p_lists): #i表示第i句话
             predict_spo_list = {}
             predict_spo_list['spo_list']= []
-            p_data = list(filter(lambda x : p_list[x] > 0.5, range(0, len(p_list))))
-            if len(p_data) > 0:
+            p_words, p_indexs = convert_ppred_to_wordsindex(p_list, process_data.p_dict)
+            if len(p_indexs) == 0:
                 predict_spo_lists.append(predict_spo_list)
                 continue
                 
-            s_lists = ps_sess.run(ps_model, feed_dict = {word_placeholder:data['word_embedding'][offset * batch_size + i:offset * batch_size + i + 1] * len(p_data), \
-                                                         postag_placeholder:data['postag'][offset * batch_size + i:offset * batch_size + i + 1] * len(p_data), \
-                                                         p_placeholder:p_data, \
-                                                         sequence_lengths:[len(process_data.test_data.iloc[offset * batch_size + i, :]['postag'])] * len(p_data), \
-                                                         batch_length:len(p_data)})
+            s_lists = ps_sess.run(ps_model, feed_dict = {ps_placeholder_list[0]:np.tile(data['word_embedding'][offset * batch_size + i:offset * batch_size + i + 1, :], (len(p_indexs), 1)), \
+                                                         ps_placeholder_list[1]:np.tile(data['postag'][offset * batch_size + i:offset * batch_size + i + 1, :], (len(p_indexs), 1)), \
+                                                         ps_placeholder_list[2]:p_indexs, \
+                                                         ps_placeholder_list[-2]:[len(process_data.test_data.iloc[offset * batch_size + i, :]['postag'])] * len(p_indexs), \
+                                                         ps_placeholder_list[-1]:len(p_indexs)})
             for j, s_list in enumerate(s_lists):    #j表示第i句话的第j个关系
-                s_indexs = convert_pspred_to_wordindex(s_list, process_data.test_data.iloc[offset * batch_size + i, :]['postag'])
-                o_lists = pso_sess.run(pso_model, feed_dict = {word_placeholder:data['word_embedding'][offset * batch_size + i:offset * batch_size + i + 1] * len(s_indexs), \
-                                                               postag_placeholder:data['postag'][offset * batch_size + i:offset * batch_size + i + 1] * len(s_indexs), \
-                                                               p_placeholder:p_data[j] * len(s_indexs), \
-                                                               s_placeholder:s_indexs, \
-                                                               sequence_lengths:[len(process_data.test_data.iloc[offset * batch_size + i, :]['postag'])] * len(s_indexs), \
-                                                               batch_length:len(s_indexs)})
+                s_words, s_indexs = convert_psopred_to_wordsindex(s_list, process_data.test_data.iloc[offset * batch_size + i, :]['postag'], process_data.word_dict)
+                o_lists = pso_sess.run(pso_model, feed_dict = {pso_placeholder_list[0]:np.tile(data['word_embedding'][offset * batch_size + i:offset * batch_size + i + 1, :], (len(p_indexs), 1)), \
+                                                               pso_placeholder_list[1]:np.tile(data['postag'][offset * batch_size + i:offset * batch_size + i + 1, :], (len(p_indexs), 1)), \
+                                                               pso_placeholder_list[2]:p_indexs[j] * len(s_indexs), \
+                                                               pso_placeholder_list[3]:s_indexs, \
+                                                               pso_placeholder_list[-2]:[len(process_data.test_data.iloc[offset * batch_size + i, :]['postag'])] * len(s_indexs), \
+                                                               pso_placeholder_list[-1]:len(s_indexs)})
                 for k, o_list in enumerate(o_lists):    #k表示第i句话的第j个关系的第k个s
-                    o_indexs = convert_pspred_to_wordindex(o_list, process_data.test_data.iloc[offset * batch_size + i, :]['postag'])
+                    o_words, o_indexs = convert_psopred_to_wordsindex(o_list, process_data.test_data.iloc[offset * batch_size + i, :]['postag'], process_data.word_dict)
                     for l, o in enumerate(o_indexs):     #k表示第i句话的第j个关系的第k个s的第l个o
                         spo = {}
-                        spo['predicated'] = p_data[j]
-                        spo['subject'] = s_indexs[k]#TODO
-                        spo['object'] = o_indexs[l]#TODO
+                        spo['predicated'] = p_words[j]
+                        spo['subject'] = s_words[k]#TODO
+                        spo['object'] = o_words[l]#TODO
                         predict_spo_list['spo_list'].append(spo)
             predict_spo_lists.append(predict_spo_list)
         offset += 1
@@ -112,7 +172,6 @@ def evaluate(process_data):
     p_sess.close()
     ps_sess.close()
     pso_sess.close()
-    
 
 if __name__ == '__main__':
     train_data_path_list = ['../../../data/train_data.json']
