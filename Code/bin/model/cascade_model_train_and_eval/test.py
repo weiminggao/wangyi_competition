@@ -136,8 +136,22 @@
 #for i in range(20): 
 #    a.append(random.randint(0, 3))
 #print(a)
-#    [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
-#a =  [3,3,2,1,0,0,0,3,1,3,3 ,2, 1, 3, 2, 2, 2, 1, 0,0,0]
+#           [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+#pso_pred =  [3,3,2,1,0,0,0,3,1,3,3 ,2, 1, 3, 2, 2, 2, 1, 0, 3, 3]
+#i = 0
+#words_position = []
+#while i < len(pso_pred):
+#    if pso_pred[i] == 3:
+#        word_position = []
+#        word_position.append(i)
+#        i = i + 1
+#        while i < len(pso_pred) and pso_pred[i] != 3 and pso_pred[i] != 0:
+#            i = i + 1
+#        word_position.append(i)
+#        words_position.append(word_position)
+#    else:
+#        i +=1
+#print(words_position)
 #print(convert_to_num_str(a))
 
 #import tensorflow as tf
@@ -215,11 +229,14 @@
 #c = {'p1':10, 'p2':20, 'p3':30}
 #a(**c)
 import pandas as pd
+import tqdm
 data = {'state': ['Ohio', 'Ohio', 'Ohio', 'Nevada', 'Nevada'],'year': [2000, 2001, 2002, 2001, 2002],'pop': [1.5, 1.7, 3.6, 2.4, 2.9]}
 frame1 = pd.DataFrame(data)
 print(frame1)
-d = frame1.iloc[0:2, :]
-print(d)
+for _, row in frame1.iterrows():
+    print(row)
+#d = frame1.iloc[0:2, :]
+#print(d)
 #print(d['pop'])
 #import tensorflow as tf
 #
