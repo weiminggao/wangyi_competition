@@ -55,7 +55,7 @@ def evaluate(process_data):
     saver = tf.train.Saver()	
     
     with tf.Session() as sess:
-        saver.restore(sess, tf.train.latest_checkpoint('../cascade_model/lstmcrf_pso_model'))
+        saver.restore(sess, tf.train.latest_checkpoint('./lstmcrf_pso_model'))
 #        saver.restore(sess, './lstmcrf_ps_model\lstmcrf_pso.ckpt0.0014773-72100')
         decode_tags, best_score = tf.contrib.crf.crf_decode(pso_model, transition_params, sequence_lengths)
         try:
@@ -100,7 +100,7 @@ def train(learning_rate, batch_size, epoch, process_data):
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())
         if RESTORE:
-            saver.restore(sess, tf.train.latest_checkpoint('../cascade_model/lstmcrf_pso_model'))
+            saver.restore(sess, tf.train.latest_checkpoint('./lstmcrf_pso_model'))
         
         step = 0
         for ep in range(epoch):
@@ -118,7 +118,7 @@ def train(learning_rate, batch_size, epoch, process_data):
                     data, label = train_data_iter.__next__()
                     if step % 100 == 0:
                         print(step)
-                        saver.save(sess, '../cascade_model/lstmcrf_pso_model/lstmcrf_pso.ckpt'+str(_error), global_step = step, write_meta_graph=False)
+                        saver.save(sess, './lstmcrf_pso_model/lstmcrf_pso.ckpt'+str(_error), global_step = step, write_meta_graph=False)
                         print('step:{}, error:{}'.format(step, _error))
             except Exception as e:
                 print(e)
