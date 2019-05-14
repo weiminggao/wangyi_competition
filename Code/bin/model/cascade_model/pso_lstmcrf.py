@@ -13,7 +13,7 @@ def pso_lstmcrf_model(word, postag, p, s, word_embedding_size, postag_embedding_
         s_embed = tf.nn.embedding_lookup(word_embedding, s)
         s_embed = tf.reduce_mean(s_embed, axis = 1)
 
-    #inpuy_representation
+    #input_representation
     with tf.name_scope('input_representation'):
         input_representation = tf.concat([word_embed, postag_embed], 2)
         input_representation = tf.cast(input_representation, tf.float32)
@@ -33,10 +33,10 @@ def pso_lstmcrf_model(word, postag, p, s, word_embedding_size, postag_embedding_
         
     #s_attension_diag
     with tf.name_scope('s_attention'):
-        s_input_representation = tf.multiply(input_representation, p_diag)
+#        s_input_representation = tf.multiply(input_representation, p_diag)
         s_attention_m = tf.get_variable('s_attention_M', shape = [word_embedding_size[1] + postag_embedding_size[1], word_embedding_size[1]])
         s_attention_m = tf.tile(tf.expand_dims(s_attention_m, 0), [batch_size, 1, 1])		
-        s_wm = tf.matmul(s_input_representation, s_attention_m)		
+        s_wm = tf.matmul(input_representation, s_attention_m)		
         s_transpose = tf.transpose(tf.expand_dims(s_embed, 1), [0, 2, 1])
         s_wmr = tf.matmul(s_wm, s_transpose)
         s_bias = tf.get_variable('s_bias', shape = [1])
@@ -47,7 +47,8 @@ def pso_lstmcrf_model(word, postag, p, s, word_embedding_size, postag_embedding_
     
     #bi_lstm
     with tf.name_scope('bi_lstm'):
-        lstm_input = tf.multiply(s_input_representation, s_diag)
+        ps_diag = tf.add(p_diag, s_diag)
+        lstm_input = tf.multiply(input_representation, ps_diag)
         cell_fw = tf.contrib.rnn.LSTMCell(512)
         cell_bw = tf.contrib.rnn.LSTMCell(512)
         (output_fw, output_bw), _ = tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, lstm_input, \

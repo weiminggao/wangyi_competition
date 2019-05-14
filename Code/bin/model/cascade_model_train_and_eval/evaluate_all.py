@@ -110,6 +110,8 @@ def stats(process_data, predict_spo_lists):#测试完毕
     pred_correct_num = 0
     pred_num = 0
     real_num = 0
+    print(len(process_data.test_data))
+    print(len(predict_spo_lists))
     for i, (_, rows) in enumerate(process_data.test_data.iterrows()):
         real_num += len(rows['spo_list'])
         pred_num += len(predict_spo_lists[i]['spo_list'])
@@ -131,7 +133,6 @@ def evaluate(process_data):#测试完毕
         
     test_data_iter = process_data.generate_batch(batch_size, process_data.test_data, features = ['word_embedding', 'postag'], label_type = 'p')
     data, label = test_data_iter.__next__()
-    offset = 0
     predict_spo_lists = []
     try:
         while data:
@@ -144,24 +145,23 @@ def evaluate(process_data):#测试完毕
                 if len(p_indexs) == 0:
                     predict_spo_lists.append(predict_spo_list)
                     continue
-                    
-                s_lists = ps_sess.run(ps_model, feed_dict = {ps_placeholder_list[0]:np.tile(data['word_embedding'][offset * batch_size + i:offset * batch_size + i + 1, :], (len(p_indexs), 1)), \
-                                                             ps_placeholder_list[1]:np.tile(data['postag'][offset * batch_size + i:offset * batch_size + i + 1, :], (len(p_indexs), 1)), \
+                s_lists = ps_sess.run(ps_model, feed_dict = {ps_placeholder_list[0]:np.tile(data['word_embedding'][i:i + 1, :], (len(p_indexs), 1)), \
+                                                             ps_placeholder_list[1]:np.tile(data['postag'][i:i + 1, :], (len(p_indexs), 1)), \
                                                              ps_placeholder_list[2]:p_indexs, \
-                                                             ps_placeholder_list[-2]:[len(process_data.test_data.iloc[offset * batch_size + i, :]['postag'])] * len(p_indexs), \
+                                                             ps_placeholder_list[-2]:[len(process_data.test_data.iloc[i, :]['postag'])] * len(p_indexs), \
                                                              ps_placeholder_list[-1]:len(p_indexs)})
                 for j, s_list in enumerate(s_lists):    #j表示第i句话的第j个关系
-                    s_words, s_indexs = convert_psopred_to_wordsindex(s_list, process_data.test_data.iloc[offset * batch_size + i, :]['postag'], process_data.word_dict)
+                    s_words, s_indexs = convert_psopred_to_wordsindex(s_list, process_data.test_data.iloc[i, :]['postag'], process_data.word_dict)
                     if len(s_indexs) == 0:
                         continue
-                    o_lists = pso_sess.run(pso_model, feed_dict = {pso_placeholder_list[0]:np.tile(data['word_embedding'][offset * batch_size + i:offset * batch_size + i + 1, :], (len(s_indexs), 1)), \
-                                                                   pso_placeholder_list[1]:np.tile(data['postag'][offset * batch_size + i:offset * batch_size + i + 1, :], (len(s_indexs), 1)), \
+                    o_lists = pso_sess.run(pso_model, feed_dict = {pso_placeholder_list[0]:np.tile(data['word_embedding'][i:i + 1, :], (len(s_indexs), 1)), \
+                                                                   pso_placeholder_list[1]:np.tile(data['postag'][i:i + 1, :], (len(s_indexs), 1)), \
                                                                    pso_placeholder_list[2]:p_indexs[j:j + 1] * len(s_indexs), \
                                                                    pso_placeholder_list[3]:s_indexs, \
-                                                                   pso_placeholder_list[-2]:[len(process_data.test_data.iloc[offset * batch_size + i, :]['postag'])] * len(s_indexs), \
+                                                                   pso_placeholder_list[-2]:[len(process_data.test_data.iloc[i, :]['postag'])] * len(s_indexs), \
                                                                    pso_placeholder_list[-1]:len(s_indexs)})
                     for k, o_list in enumerate(o_lists):    #k表示第i句话的第j个关系的第k个s
-                        o_words, o_indexs = convert_psopred_to_wordsindex(o_list, process_data.test_data.iloc[offset * batch_size + i, :]['postag'], process_data.word_dict)
+                        o_words, o_indexs = convert_psopred_to_wordsindex(o_list, process_data.test_data.iloc[i, :]['postag'], process_data.word_dict)
                         for l, o in enumerate(o_indexs):     #k表示第i句话的第j个关系的第k个s的第l个o
                             spo = {}
                             spo['predicated'] = p_words[j]
@@ -169,7 +169,6 @@ def evaluate(process_data):#测试完毕
                             spo['object'] = o_words[l]
                             predict_spo_list['spo_list'].append(spo)
                 predict_spo_lists.append(predict_spo_list)
-            offset += 1
             data, label = test_data_iter.__next__()
     except Exception as e:
         print('预测完毕')

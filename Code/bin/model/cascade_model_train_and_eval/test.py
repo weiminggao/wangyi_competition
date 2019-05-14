@@ -228,13 +228,13 @@
 #    print(p3)
 #c = {'p1':10, 'p2':20, 'p3':30}
 #a(**c)
-import pandas as pd
-import tqdm
-data = {'state': ['Ohio', 'Ohio', 'Ohio', 'Nevada', 'Nevada'],'year': [2000, 2001, 2002, 2001, 2002],'pop': [1.5, 1.7, 3.6, 2.4, 2.9]}
-frame1 = pd.DataFrame(data)
-print(frame1)
-for _, row in frame1.iterrows():
-    print(row)
+#import pandas as pd
+#import tqdm
+#data = {'state': ['Ohio', 'Ohio', 'Ohio', 'Nevada', 'Nevada'],'year': [2000, 2001, 2002, 2001, 2002],'pop': [1.5, 1.7, 3.6, 2.4, 2.9]}
+#frame1 = pd.DataFrame(data)
+#print(frame1)
+#for _, row in frame1.iterrows():
+#    print(row)
 #d = frame1.iloc[0:2, :]
 #print(d)
 #print(d['pop'])
@@ -263,3 +263,16 @@ for _, row in frame1.iterrows():
 #    print(d)
 #f = ((1,2,3),(4,5,6))
 #a(*f[0])
+import tensorflow as tf
+a = tf.constant([[[1,2,3], [4,5,6]], 
+                 [[5,6,7], [8,9,7]]])
+b = tf.constant([[[1,2,3], [4,5,6]], 
+                 [[5,6,7], [8,9,7]]])
+c = tf.add(a, b)
+#mask = tf.sequence_mask([1, 2])
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    print(sess.run(c))
+#    print(sess.run(mask))
+#    print(sess.run(tf.boolean_mask(a, mask)))
+#    print(sess.run(tf.reduce_mean_mask(a, mask)))

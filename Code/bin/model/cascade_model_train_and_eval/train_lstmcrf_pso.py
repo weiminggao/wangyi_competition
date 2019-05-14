@@ -7,7 +7,7 @@ sys.path.append('../cascade_model')
 from load_data import process_data
 import pso_lstmcrf
 
-RESTORE = True
+RESTORE = False
 
 def evaluate(process_data):
     pred_correct_num = 0
@@ -133,8 +133,8 @@ if __name__ == '__main__':
     p_path = '../../../data/all_50_schemas'
     process_data = process_data(train_data_path_list, test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path)
     
-    batch_size = 256
-    learning_rate = 0.01 #0.001    #0.0000001收敛较慢
+    batch_size = 128
+    learning_rate = 0.001 #0.01 #0.001    #0.0000001收敛较慢
     epoch = 100
     train(learning_rate, batch_size, epoch, process_data)
 #    evaluate(process_data)
