@@ -55,8 +55,8 @@ def evaluate(process_data):
     saver = tf.train.Saver()	
     
     with tf.Session() as sess:
-        saver.restore(sess, tf.train.latest_checkpoint('./lstmcrf_pso_model'))
-#        saver.restore(sess, './lstmcrf_ps_model\lstmcrf_pso.ckpt0.0014773-72100')
+#        saver.restore(sess, tf.train.latest_checkpoint('./lstmcrf_pso_model'))
+        saver.restore(sess, './lstmcrf_pso_model/lstmcrf_pso.ckpt0.3958609-59100')
         decode_tags, best_score = tf.contrib.crf.crf_decode(pso_model, transition_params, sequence_lengths)
         try:
             data, label = test_data_iter.__next__()
@@ -136,5 +136,5 @@ if __name__ == '__main__':
     batch_size = 128
     learning_rate = 0.001 #0.01 #0.001    #0.0000001收敛较慢
     epoch = 100
-    train(learning_rate, batch_size, epoch, process_data)
-#    evaluate(process_data)
+   # train(learning_rate, batch_size, epoch, process_data)
+    evaluate(process_data)
