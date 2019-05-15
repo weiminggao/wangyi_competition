@@ -1,23 +1,23 @@
-import pandas as pd 
-
-<<<<<<< HEAD
-f = open('../../data/embedding/sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5')
-f1 = open('../../data/embedding/sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5.table', 'w')
-=======
-f = open('F://wangyi_competition-master//Code//data//embedding//sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5', encoding='UTF-8')
-f1 = open('F://wangyi_competition-master//Code//data//embedding//sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5.table', 'w', encoding='UTF-8')
->>>>>>> 'cnn_p'
-line = f.readline()
-line = f.readline()
-count = 0
-while line:
-	line = list(line.strip(' \n').split(' '))
-	count += 1
-	data = line[0] + '\t' + ','.join(line[1:]) + '\n'
-	f1.write(data)
-	line = f.readline()
-	if count  % 2000 == 0:
-		print('count:{}'.format(count))
+#import pandas as pd 
+#
+#<<<<<<< HEAD
+#f = open('../../data/embedding/sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5')
+#f1 = open('../../data/embedding/sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5.table', 'w')
+#=======
+#f = open('F://wangyi_competition-master//Code//data//embedding//sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5', encoding='UTF-8')
+#f1 = open('F://wangyi_competition-master//Code//data//embedding//sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5.table', 'w', encoding='UTF-8')
+#>>>>>>> 'cnn_p'
+#line = f.readline()
+#line = f.readline()
+#count = 0
+#while line:
+#	line = list(line.strip(' \n').split(' '))
+#	count += 1
+#	data = line[0] + '\t' + ','.join(line[1:]) + '\n'
+#	f1.write(data)
+#	line = f.readline()
+#	if count  % 2000 == 0:
+#		print('count:{}'.format(count))
 
 '''
 def df_convert_dict(df):
@@ -34,3 +34,17 @@ data = f.readlines()
 for ele in data:
 	print(ele.strip('\n'))
 '''
+#import json
+#read_f = open('../../data/dev_data_pso.json', encoding = 'UTF-8')        
+#write_f = open('../../data/dev_data_pso_distinct.json', 'w', encoding = 'UTF-8')
+#line = read_f.readline()
+#texts = []
+#while line:
+#    data = json.loads(line)
+#    if data['text'] not in texts:
+#        texts.append(data['text'])
+#        write_f.write(json.dumps(data, ensure_ascii = False) + '\n')
+#    line = read_f.readline()
+import pandas as pd
+data = pd.read_json('../../data/dev_data_pso_distinct.json', lines = True, encoding="utf8")
+print(data)

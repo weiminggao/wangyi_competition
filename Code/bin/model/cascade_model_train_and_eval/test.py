@@ -264,17 +264,20 @@
 #    print(c)
 #    print(d)
 #f = ((1,2,3),(4,5,6))
-#a(*f[0])
-import tensorflow as tf
-a = tf.constant([[[1,2,3], [4,5,6]], 
-                 [[5,6,7], [8,9,7]]])
-b = tf.constant([[[1,2,3], [4,5,6]], 
-                 [[5,6,7], [8,9,7]]])
-c = tf.add(a, b)
-#mask = tf.sequence_mask([1, 2])
-with tf.Session() as sess:
-    sess.run(tf.global_variables_initializer())
-    print(sess.run(c))
+##a(*f[0])
+#import tensorflow as tf
+#a = tf.constant([[[1,2,3], [4,5,6]], 
+#                 [[5,6,7], [8,9,7]]])
+#b = tf.constant([[[1,2,3], [4,5,6]], 
+#                 [[5,6,7], [8,9,7]]])
+#c = tf.add(a, b)
+##mask = tf.sequence_mask([1, 2])
+#with tf.Session() as sess:
+#    sess.run(tf.global_variables_initializer())
+#    print(sess.run(c))
 #    print(sess.run(mask))
 #    print(sess.run(tf.boolean_mask(a, mask)))
 #    print(sess.run(tf.reduce_mean_mask(a, mask)))
+import pandas as pd
+data = pd.read_json('../../../data/dev_data_pso_distinct.json', lines = True, encoding="utf8")
+print(data)

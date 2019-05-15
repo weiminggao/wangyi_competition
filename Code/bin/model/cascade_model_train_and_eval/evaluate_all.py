@@ -60,11 +60,11 @@ def generate_model_and_sess(model_type, process_data, load_path):#测试完毕
         placeholder_list = generate_model_placeholder_list(model_type, process_data)
         model = model_registry[model_type](*placeholder_list[0])
         model = decorate_model(model_type, model, placeholder_list[1])
-        init_op = tf.initialize_all_variables()
-#        saver = tf.train.Saver()
+#        init_op = tf.initialize_all_variables()
+        saver = tf.train.Saver()
     sess = tf.Session(graph = graph)
-    sess.run(init_op)
-#    saver.restore(sess, load_path)
+#    sess.run(init_op)
+    saver.restore(sess, load_path)
     return placeholder_list[0], model, sess    
 
 def convert_ppred_to_wordsindex(p_pred, p_dict):#测试完毕
@@ -126,42 +126,53 @@ def stats(process_data, predict_spo_lists):#测试完毕
     f1 = (2 * precision * recall)/(precision + recall)
     return precision, recall, f1
     
-def evaluate(process_data):#测试完毕        
-    p_placeholder_list, p_model, p_sess = generate_model_and_sess('p', process_data, './cnn_model\cnn.ckpt2.99603e-06-43100')
-    ps_placeholder_list, ps_model, ps_sess = generate_model_and_sess('ps', process_data, './lstmcrf_ps_model\lstmcrf_ps.ckpt0.0014773-72100')
-    pso_placeholder_list, pso_model, pso_sess = generate_model_and_sess('pso', process_data, './lstmcrf_pso_model')#TODO
+def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕        
+    p_placeholder_list, p_model, p_sess = generate_model_and_sess('p', p_process_data, './cnn_model\cnn.ckpt2.99603e-06-43100')
+    import time
+    time.sleep(10)
+    ps_placeholder_list, ps_model, ps_sess = generate_model_and_sess('ps', ps_process_data, './lstmcrf_ps_model\lstmcrf_ps.ckpt0.0014773-72100')
+    time.sleep(10)
+    pso_placeholder_list, pso_model, pso_sess = generate_model_and_sess('pso', pso_process_data, './lstmcrf_pso_model\lstmcrf_pso.ckpt0.37789398-58900')#TODO
         
-    test_data_iter = process_data.generate_batch(batch_size, process_data.test_data, features = ['word_embedding', 'postag'], label_type = 'p')
-    data, label = test_data_iter.__next__()
+    p_test_data_iter = p_process_data.generate_batch(batch_size, p_process_data.valid_data, features = ['word_embedding', 'postag'], label_type = 'p')
+    ps_test_data_iter = ps_process_data.generate_batch(batch_size, ps_process_data.valid_data, features = ['word_embedding', 'postag'], label_type = 'p')
+    pso_test_data_iter = pso_process_data.generate_batch(batch_size, pso_process_data.valid_data, features = ['word_embedding', 'postag'], label_type = 'p')
+    
+    p_data, p_label = p_test_data_iter.__next__()
+    ps_data, ps_label = ps_test_data_iter.__next__()
+    pso_data, pso_lable = pso_test_data_iter.__next__()
+    
     predict_spo_lists = []
+    offset = 0
     try:
-        while data:
-            p_lists = p_sess.run(p_model, feed_dict = {p_placeholder_list[0]:data['word_embedding'], \
-                                                       p_placeholder_list[1]:data['postag']})
+        while p_data:
+            print(offset)
+            p_lists = p_sess.run(p_model, feed_dict = {p_placeholder_list[0]:p_data['word_embedding'], \
+                                                       p_placeholder_list[1]:p_data['postag']})
             for i, p_list in enumerate(p_lists): #i表示第i句话
                 predict_spo_list = {}
                 predict_spo_list['spo_list']= []
-                p_words, p_indexs = convert_ppred_to_wordsindex(p_list, process_data.p_dict)
+                p_words, p_indexs = convert_ppred_to_wordsindex(p_list, p_process_data.p_dict)
                 if len(p_indexs) == 0:
                     predict_spo_lists.append(predict_spo_list)
                     continue
-                s_lists = ps_sess.run(ps_model, feed_dict = {ps_placeholder_list[0]:np.tile(data['word_embedding'][i:i + 1, :], (len(p_indexs), 1)), \
-                                                             ps_placeholder_list[1]:np.tile(data['postag'][i:i + 1, :], (len(p_indexs), 1)), \
+                s_lists = ps_sess.run(ps_model, feed_dict = {ps_placeholder_list[0]:np.tile(ps_data['word_embedding'][i:i + 1, :], (len(p_indexs), 1)), \
+                                                             ps_placeholder_list[1]:np.tile(ps_data['postag'][i:i + 1, :], (len(p_indexs), 1)), \
                                                              ps_placeholder_list[2]:p_indexs, \
-                                                             ps_placeholder_list[-2]:[len(process_data.test_data.iloc[i, :]['postag'])] * len(p_indexs), \
+                                                             ps_placeholder_list[-2]:[len(ps_process_data.valid_data.iloc[offset * batch_size + i, :]['postag'])] * len(p_indexs), \
                                                              ps_placeholder_list[-1]:len(p_indexs)})
                 for j, s_list in enumerate(s_lists):    #j表示第i句话的第j个关系
-                    s_words, s_indexs = convert_psopred_to_wordsindex(s_list, process_data.test_data.iloc[i, :]['postag'], process_data.word_dict)
+                    s_words, s_indexs = convert_psopred_to_wordsindex(s_list, ps_process_data.valid_data.iloc[offset * batch_size + i, :]['postag'], pso_process_data.word_dict)
                     if len(s_indexs) == 0:
                         continue
-                    o_lists = pso_sess.run(pso_model, feed_dict = {pso_placeholder_list[0]:np.tile(data['word_embedding'][i:i + 1, :], (len(s_indexs), 1)), \
-                                                                   pso_placeholder_list[1]:np.tile(data['postag'][i:i + 1, :], (len(s_indexs), 1)), \
+                    o_lists = pso_sess.run(pso_model, feed_dict = {pso_placeholder_list[0]:np.tile(pso_data['word_embedding'][i:i + 1, :], (len(s_indexs), 1)), \
+                                                                   pso_placeholder_list[1]:np.tile(pso_data['postag'][i:i + 1, :], (len(s_indexs), 1)), \
                                                                    pso_placeholder_list[2]:p_indexs[j:j + 1] * len(s_indexs), \
                                                                    pso_placeholder_list[3]:s_indexs, \
-                                                                   pso_placeholder_list[-2]:[len(process_data.test_data.iloc[i, :]['postag'])] * len(s_indexs), \
+                                                                   pso_placeholder_list[-2]:[len(pso_process_data.valid_data.iloc[offset * batch_size + i, :]['postag'])] * len(s_indexs), \
                                                                    pso_placeholder_list[-1]:len(s_indexs)})
                     for k, o_list in enumerate(o_lists):    #k表示第i句话的第j个关系的第k个s
-                        o_words, o_indexs = convert_psopred_to_wordsindex(o_list, process_data.test_data.iloc[i, :]['postag'], process_data.word_dict)
+                        o_words, o_indexs = convert_psopred_to_wordsindex(o_list, pso_process_data.valid_data.iloc[offset * batch_size + i, :]['postag'], pso_process_data.word_dict)
                         for l, o in enumerate(o_indexs):     #k表示第i句话的第j个关系的第k个s的第l个o
                             spo = {}
                             spo['predicated'] = p_words[j]
@@ -169,7 +180,10 @@ def evaluate(process_data):#测试完毕
                             spo['object'] = o_words[l]
                             predict_spo_list['spo_list'].append(spo)
                 predict_spo_lists.append(predict_spo_list)
-            data, label = test_data_iter.__next__()
+            p_data, p_label = p_test_data_iter.__next__()
+            ps_data, ps_label = ps_test_data_iter.__next__()
+            pso_data, pso_lable = pso_test_data_iter.__next__()
+            offset += 1
     except Exception as e:
         print('预测完毕')
         precision, recall, f1 = stats(process_data, predict_spo_lists)
@@ -180,14 +194,22 @@ def evaluate(process_data):#测试完毕
     pso_sess.close()
 
 if __name__ == '__main__':
-    train_data_path_list = ['../../../data/train_data.json']
-    test_data_path = '../../../data/dev_data.json'
+    p_train_data_path_list = ['../../../data/train_data.json']
+    p_test_data_path = '../../../data/dev_data.json'
+    ps_train_data_path_list = ['../../../data/train_data_ps.json']
+    ps_test_data_path = '../../../data/dev_data_ps.json'
+    pso_train_data_path_list = ['../../../data/train_data_pso.json']
+    pso_test_data_path = '../../../data/dev_data_pso.json'
+    
     pre_word_embedding_path = '../../../data/embedding/sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5.table'
     baike_word_embedding_path = '../../../data/embedding/sgns.target.word-ngram.1-2.dynwin5.thr10.neg5.dim300.iter5.table'
     postag_path = '../../../data/pos'
     p_path = '../../../data/all_50_schemas'
-    process_data = process_data(train_data_path_list, test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path)
     
-    batch_size = 25
+    p_process_data = process_data(p_train_data_path_list, p_test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path)
+    ps_process_data = process_data(ps_train_data_path_list, ps_test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path)
+    pso_process_data = process_data(pso_train_data_path_list, pso_test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path)
+    
+    batch_size = 2
     out_len = 49
-    evaluate(process_data)
+    evaluate(p_process_data, ps_process_data, pso_process_data)
