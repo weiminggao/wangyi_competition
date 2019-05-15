@@ -1,6 +1,8 @@
 #import tensorflow as tf 
 #import numpy as np 
 #
+
+###
 #embedding_0 = tf.Variable(np.identity(5), dtype = tf.float32)
 #embeded_0 = tf.nn.embedding_lookup(embedding_0, [[1,2,4], [2, 0, 4]])
 #
