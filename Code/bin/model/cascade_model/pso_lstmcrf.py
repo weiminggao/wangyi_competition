@@ -20,7 +20,7 @@ def pso_lstmcrf_model(word, postag, p, s, word_embedding_size, postag_embedding_
 
     #s_attention_diag
     with tf.name_scope('s_attention'):
-#        s_input_representation = tf.multiply(input_representation, p_diag)
+#        s_input_representation = tf.multiply(input_representation, p_diag) ##
         s_attention_m = tf.get_variable('s_attention_M', shape = [word_embedding_size[1] + postag_embedding_size[1], word_embedding_size[1]])
         s_attention_m = tf.tile(tf.expand_dims(s_attention_m, 0), [batch_size, 1, 1])		
         s_wm = tf.matmul(input_representation, s_attention_m)		
