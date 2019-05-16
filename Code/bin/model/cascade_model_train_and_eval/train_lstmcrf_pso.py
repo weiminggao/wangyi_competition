@@ -7,7 +7,7 @@ sys.path.append('../cascade_model')
 from load_data import process_data
 import pso_lstmcrf
 
-RESTORE = False
+RESTORE = True
 
 def evaluate(process_data):
     pred_correct_num = 0
@@ -57,7 +57,8 @@ def evaluate(process_data):
     
     with tf.Session() as sess:
 #        saver.restore(sess, tf.train.latest_checkpoint('./lstmcrf_pso_model'))
-        saver.restore(sess, './lstmcrf_pso_model/lstmcrf_pso.ckpt0.37789398-58900')#80 
+#        saver.restore(sess, './lstmcrf_pso_model/lstmcrf_pso.ckpt0.37789398-58900')#80 
+        saver.restore(sess, './lstmcrf_pso_model/lstmcrf_pso.ckpt0.208563-11900')
         decode_tags, best_score = tf.contrib.crf.crf_decode(pso_model, transition_params, sequence_lengths)
         try:
             data, label = test_data_iter.__next__()
@@ -138,5 +139,5 @@ if __name__ == '__main__':
     batch_size = 128
     learning_rate = 0.001 #0.01 #0.001    #0.0000001收敛较慢
     epoch = 100
-    train(learning_rate, batch_size, epoch, process_data)
-#    evaluate(process_data)
+#    train(learning_rate, batch_size, epoch, process_data)
+    evaluate(process_data)
