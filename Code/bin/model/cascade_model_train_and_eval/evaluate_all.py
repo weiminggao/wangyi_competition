@@ -110,14 +110,15 @@ def stats(process_data, predict_spo_lists):#测试完毕
     pred_correct_num = 0
     pred_num = 0
     real_num = 0
-    print(len(process_data.test_data))
+    print(len(process_data.valid_data))
     print(len(predict_spo_lists))
-    for i, (_, rows) in enumerate(process_data.test_data.iterrows()):
+    for i, (_, rows) in enumerate(process_data.valid_data.iterrows()):
         real_num += len(rows['spo_list'])
         pred_num += len(predict_spo_lists[i]['spo_list'])
-        compare_spo_list = list(map(lambda x : {'predicate':x['predicate'], \
+        compare_spo_list = list(map(lambda x : {'predicated':x['predicate'], \
                                                 'subject':x['subject'], \
                                                 'object':x['object']}, rows['spo_list']))
+
         for predict_spo in predict_spo_lists[i]['spo_list']:
             if predict_spo in compare_spo_list:
                 pred_correct_num += 1
@@ -127,12 +128,9 @@ def stats(process_data, predict_spo_lists):#测试完毕
     return precision, recall, f1
     
 def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕        
-    p_placeholder_list, p_model, p_sess = generate_model_and_sess('p', p_process_data, './cnn_model\cnn.ckpt2.99603e-06-43100')
-    import time
-    time.sleep(10)
-    ps_placeholder_list, ps_model, ps_sess = generate_model_and_sess('ps', ps_process_data, './lstmcrf_ps_model\lstmcrf_ps.ckpt0.0014773-72100')
-    time.sleep(10)
-    pso_placeholder_list, pso_model, pso_sess = generate_model_and_sess('pso', pso_process_data, './lstmcrf_pso_model\lstmcrf_pso.ckpt0.37789398-58900')#TODO
+    p_placeholder_list, p_model, p_sess = generate_model_and_sess('p', p_process_data, './cnn_model/cnn.ckpt2.99603e-06-43100')
+    ps_placeholder_list, ps_model, ps_sess = generate_model_and_sess('ps', ps_process_data, './lstmcrf_ps_model/lstmcrf_ps.ckpt0.0014773-72100')
+    pso_placeholder_list, pso_model, pso_sess = generate_model_and_sess('pso', pso_process_data, './lstmcrf_pso_model/lstmcrf_pso.ckpt0.37789398-58900')
         
     p_test_data_iter = p_process_data.generate_batch(batch_size, p_process_data.valid_data, features = ['word_embedding', 'postag'], label_type = 'p')
     ps_test_data_iter = ps_process_data.generate_batch(batch_size, ps_process_data.valid_data, features = ['word_embedding', 'postag'], label_type = 'p')
@@ -186,8 +184,8 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
             offset += 1
     except Exception as e:
         print('预测完毕')
-        precision, recall, f1 = stats(process_data, predict_spo_lists)
-        print('cascade模型的precision:{}, recall:{}, f2:{}'.format(precision, recall, f1))
+        precision, recall, f1 = stats(p_process_data, predict_spo_lists)
+        print('cascade模型的precision:{}, recall:{}, f1:{}'.format(precision, recall, f1))
             
     p_sess.close()
     ps_sess.close()
@@ -210,6 +208,6 @@ if __name__ == '__main__':
     ps_process_data = process_data(ps_train_data_path_list, ps_test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path)
     pso_process_data = process_data(pso_train_data_path_list, pso_test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path)
     
-    batch_size = 2
+    batch_size = 128
     out_len = 49
     evaluate(p_process_data, ps_process_data, pso_process_data)
