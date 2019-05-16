@@ -39,15 +39,16 @@ def evaluate(process_data):
     word_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len]) 
     postag_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len]) 
     p_placeholder = tf.placeholder(tf.int32, [None])
-    s_placeholder = tf.placeholder(tf.int32, [None, 5])
+    s_placeholder = tf.placeholder(tf.int32, [None, 10])
     sequence_lengths = tf.placeholder(tf.int32, [None])
+    s_lengths = tf.placeholder(tf.int32, [None])
     out_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len])
     batch_length = tf.placeholder(tf.int32)
     
     pso_model = pso_lstmcrf.pso_lstmcrf_model(word_placeholder, postag_placeholder, p_placeholder, s_placeholder, \
                                               np.shape(process_data.word_embedding), np.shape(process_data.postag_embedding), \
                                               np.shape(process_data.p_embedding), process_data.word_embedding, process_data.postag_embedding, \
-                                              process_data.p_embedding, sequence_lengths, batch_length)
+                                              process_data.p_embedding, sequence_lengths, s_lengths, batch_length)
     log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(pso_model, out_placeholder, sequence_lengths)
     decode_tags, best_score = tf.contrib.crf.crf_decode(pso_model, transition_params, sequence_lengths)
     test_data_iter = process_data.generate_batch(batch_size, process_data.test_data, \
@@ -62,8 +63,8 @@ def evaluate(process_data):
             data, label = test_data_iter.__next__()
             while data:
                 _decode_tags = sess.run(decode_tags, feed_dict = {word_placeholder:data['word_embedding'], postag_placeholder:data['postag'], \
-                                                                  p_placeholder:data['p'], s_placeholder:data['s'],\
-                                                                  sequence_lengths:data['sequence_lengths'], batch_length:len(data['sequence_lengths'])})		
+                                                                  p_placeholder:data['p'], s_placeholder:data['s'][0],\
+                                                                  sequence_lengths:data['sequence_lengths'], s_lengths:data['s'][1], batch_length:len(data['sequence_lengths'])})		
                 stats(_decode_tags, label)
                 data, label = test_data_iter.__next__()
         except Exception as e:
@@ -79,8 +80,9 @@ def train(learning_rate, batch_size, epoch, process_data):
     word_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len]) 
     postag_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len]) 
     p_placeholder = tf.placeholder(tf.int32, [None])
-    s_placeholder = tf.placeholder(tf.int32, [None, 5])
+    s_placeholder = tf.placeholder(tf.int32, [None, 10])
     sequence_lengths = tf.placeholder(tf.int32, [None])
+    s_lengths = tf.placeholder(tf.int32, [None])
     batch_length = tf.placeholder(tf.int32)
     out_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len])
     
@@ -88,7 +90,7 @@ def train(learning_rate, batch_size, epoch, process_data):
                                              np.shape(process_data.word_embedding), np.shape(process_data.postag_embedding), \
                                              np.shape(process_data.p_embedding), process_data.word_embedding, \
                                              process_data.postag_embedding, process_data.p_embedding, \
-                                             sequence_lengths, batch_length)
+                                             sequence_lengths, s_lengths, batch_length)
     log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(pso_model, out_placeholder, sequence_lengths)
     error = tf.reduce_mean(-log_likelihood)
     train_step = tf.train.AdamOptimizer(learning_rate).minimize(error)
@@ -110,11 +112,11 @@ def train(learning_rate, batch_size, epoch, process_data):
                 while data:
                     step += 1
                     sess.run(train_step, feed_dict = {word_placeholder:data['word_embedding'], postag_placeholder:data['postag'], \
-                                                      p_placeholder:data['p'], s_placeholder:data['s'], \
-                                                      sequence_lengths:data['sequence_lengths'], batch_length:len(data['sequence_lengths']), out_placeholder:label})		
+                                                      p_placeholder:data['p'], s_placeholder:data['s'][0], \
+                                                      sequence_lengths:data['sequence_lengths'], s_lengths:data['s'][1], batch_length:len(data['sequence_lengths']), out_placeholder:label})		
                     _error = sess.run(error, feed_dict = {word_placeholder:data['word_embedding'], postag_placeholder:data['postag'], \
-                                                          p_placeholder:data['p'], s_placeholder:data['s'], \
-                                                          sequence_lengths:data['sequence_lengths'], batch_length:len(data['sequence_lengths']), out_placeholder:label})		
+                                                          p_placeholder:data['p'], s_placeholder:data['s'][0], \
+                                                          sequence_lengths:data['sequence_lengths'], s_lengths:data['s'][1], batch_length:len(data['sequence_lengths']), out_placeholder:label})		
                     data, label = train_data_iter.__next__()
                     if step % 100 == 0:
                         print(step)
@@ -136,5 +138,5 @@ if __name__ == '__main__':
     batch_size = 128
     learning_rate = 0.001 #0.01 #0.001    #0.0000001收敛较慢
     epoch = 100
-   # train(learning_rate, batch_size, epoch, process_data)
-    evaluate(process_data)
+    train(learning_rate, batch_size, epoch, process_data)
+#    evaluate(process_data)

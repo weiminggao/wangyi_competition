@@ -46,5 +46,5 @@ for ele in data:
 #        write_f.write(json.dumps(data, ensure_ascii = False) + '\n')
 #    line = read_f.readline()
 import pandas as pd
-data = pd.read_json('../../data/dev_data_pso_distinct.json', lines = True, encoding="utf8")
-print(data)
+data = pd.read_json('../../data/dev_data_pso.json', lines = True, encoding="utf8")
+print(len(data))

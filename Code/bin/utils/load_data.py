@@ -154,14 +154,16 @@ class process_data(object):
         return p
     
     def parse_s(self, batch_data):#测试完毕
-        s = np.zeros([len(batch_data), 5])
+        s = np.zeros([len(batch_data), 10])
+        s_lengths = np.zeros(len(batch_data))
         for i, (_, row) in enumerate(batch_data.iterrows()):
+            s_lengths[i] = min(10, len(row['s']))
             for j, ele in enumerate(row['s']):
-                if j >= 5:
+                if j >= 10:
                     break
                 if ele in self.word_dict:
                     s[i][j] = self.word_dict[ele]
-        return s
+        return [s, s_lengths]
     
     def parse_p_labels(self, batch_data):	#测试完毕
         p_labels = np.zeros([len(batch_data), len(self.p_dict)])

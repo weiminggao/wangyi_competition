@@ -128,10 +128,7 @@ def stats(process_data, predict_spo_lists):#测试完毕
     
 def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕        
     p_placeholder_list, p_model, p_sess = generate_model_and_sess('p', p_process_data, './cnn_model\cnn.ckpt2.99603e-06-43100')
-    import time
-    time.sleep(10)
     ps_placeholder_list, ps_model, ps_sess = generate_model_and_sess('ps', ps_process_data, './lstmcrf_ps_model\lstmcrf_ps.ckpt0.0014773-72100')
-    time.sleep(10)
     pso_placeholder_list, pso_model, pso_sess = generate_model_and_sess('pso', pso_process_data, './lstmcrf_pso_model\lstmcrf_pso.ckpt0.37789398-58900')#TODO
         
     p_test_data_iter = p_process_data.generate_batch(batch_size, p_process_data.valid_data, features = ['word_embedding', 'postag'], label_type = 'p')
