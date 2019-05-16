@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import tensorflow as tf
+import numpy as np
+
 def pso_lstmcrf_model(word, postag, p, s, word_embedding_size, postag_embedding_size, p_embedding_size, \
-                     word_embedding, postag_embedding, p_embedding, sequence_lengths, batch_size):
+                      word_embedding, postag_embedding, p_embedding, sequence_lengths, s_lengths, batch_size):
     #embedding
     with tf.name_scope('embedding'):
         word_embedding = tf.get_variable('word_embedding', initializer = word_embedding)#shape = [412183, 300])
@@ -11,7 +13,14 @@ def pso_lstmcrf_model(word, postag, p, s, word_embedding_size, postag_embedding_
         p_embedding = tf.get_variable('p_embedding', initializer = p_embedding)
         p_embed = tf.nn.embedding_lookup(p_embedding, p)
         s_embed = tf.nn.embedding_lookup(word_embedding, s)
-        s_embed = tf.reduce_mean(s_embed, axis = 1)
+        s_lengths_embedding = tf.get_variable('s_lengths_embedding', initializer = np.tril(np.float32(np.ones(shape = [11, 10])), -1), trainable = False)
+        s_lengths_embed = tf.nn.embedding_lookup(s_lengths_embedding, s_lengths)
+        s_lengths_embed = tf.reshape(s_lengths_embed, (-1, 10, 1)) 
+        s_embed = tf.multiply(s_embed, s_lengths_embed)
+        s_embed = tf.reduce_sum(s_embed, axis = 1)
+        div = tf.cast(tf.reshape(s_lengths, shape = [batch_size, -1]), dtype = tf.float32)           
+        s_embed = tf.div(s_embed, div)                #找句子的embedding平均
+ #       s_embed = tf.reduce_mean(s_embed, axis = 1)
 
     #input_representation
     with tf.name_scope('input_representation'):

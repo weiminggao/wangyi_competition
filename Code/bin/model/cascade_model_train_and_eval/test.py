@@ -278,6 +278,9 @@
 #    print(sess.run(mask))
 #    print(sess.run(tf.boolean_mask(a, mask)))
 #    print(sess.run(tf.reduce_mean_mask(a, mask)))
-import pandas as pd
-data = pd.read_json('../../../data/dev_data_pso_distinct.json', lines = True, encoding="utf8")
-print(data)
+#import pandas as pd
+#data = pd.read_json('../../../data/dev_data_pso_distinct.json', lines = True, encoding="utf8")
+#print(data)
+import numpy as np
+a = np.tril(np.ones([11, 10]), -1)
+print(a)
