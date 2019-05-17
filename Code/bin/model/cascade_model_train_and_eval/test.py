@@ -231,10 +231,11 @@
 #c = {'p1':10, 'p2':20, 'p3':30}
 #a(**c)
 #import pandas as pd
-#import tqdm
+##import tqdm
 #data = {'state': ['Ohio', 'Ohio', 'Ohio', 'Nevada', 'Nevada'],'year': [2000, 2001, 2002, 2001, 2002],'pop': [1.5, 1.7, 3.6, 2.4, 2.9]}
 #frame1 = pd.DataFrame(data)
 #print(frame1)
+#print(frame1.drop(frame1.index,inplace=True))
 #for _, row in frame1.iterrows():
 #    print(row)
 #d = frame1.iloc[0:2, :]
@@ -281,6 +282,28 @@
 #import pandas as pd
 #data = pd.read_json('../../../data/dev_data_pso_distinct.json', lines = True, encoding="utf8")
 #print(data)
-import numpy as np
-a = np.tril(np.ones([11, 10]), -1)
-print(a)
+#import numpy as np
+#a = np.tril(np.ones([11, 10]), -1)
+#print(a)
+#import pandas as pd
+#a = pd.read_json('F:/wangyi_competition-master/Code/data/test_data_postag11.json', lines = True, encoding="utf8") 
+
+#a = {}
+#b = {'a':9,'b':10}
+#a['l'] = []
+#a['l'].append(b)
+#a['l'].append(b)
+#a['l'].append(b)
+#with open('.\out.json', 'w', encoding='UTF-8') as f:
+#    json.dump(a, f)
+import pandas as pd
+import time
+import gc
+a = pd.read_json('F:/wangyi_competition-master/Code/data/test_data_postag.json', lines = True, encoding="utf8")
+#while True:
+#    print('hhhhh')
+time.sleep(30)
+del a
+gc.collect()
+while True:
+    print('llll')

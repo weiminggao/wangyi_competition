@@ -19,21 +19,21 @@
 #	if count  % 2000 == 0:
 #		print('count:{}'.format(count))
 
-'''
-def df_convert_dict(df):
-			_dict = {}
-			for i, row in tqdm(df.iterrows()):
-				_dict[row[0]] = list(map(lambda x: float(x), row[1].split(',')))
-			return _dict 
-		pre_word_embedding = df_convert_dict(pd.read_table(self.pre_word_embedding_path, delimiter = '\t', header = None, quoting = csv.QUOTE_NONE, error_bad_lines = False))
-		baike_word_embedding = df_convert_dict(pd.read_table(self.baike_word_embedding_path, delimiter = '\t', header = None, quoting = csv.QUOTE_NONE, error_bad_lines = False)) 
-'''
-'''
-f = open('test')
-data = f.readlines()
-for ele in data:
-	print(ele.strip('\n'))
-'''
+#'''
+#def df_convert_dict(df):
+#			_dict = {}
+#			for i, row in tqdm(df.iterrows()):
+#				_dict[row[0]] = list(map(lambda x: float(x), row[1].split(',')))
+#			return _dict 
+#		pre_word_embedding = df_convert_dict(pd.read_table(self.pre_word_embedding_path, delimiter = '\t', header = None, quoting = csv.QUOTE_NONE, error_bad_lines = False))
+#		baike_word_embedding = df_convert_dict(pd.read_table(self.baike_word_embedding_path, delimiter = '\t', header = None, quoting = csv.QUOTE_NONE, error_bad_lines = False)) 
+#'''
+#'''
+#f = open('test')
+#data = f.readlines()
+#for ele in data:
+#	print(ele.strip('\n'))
+#'''
 #import json
 #read_f = open('../../data/dev_data_pso.json', encoding = 'UTF-8')        
 #write_f = open('../../data/dev_data_pso_distinct.json', 'w', encoding = 'UTF-8')
@@ -45,6 +45,24 @@ for ele in data:
 #        texts.append(data['text'])
 #        write_f.write(json.dumps(data, ensure_ascii = False) + '\n')
 #    line = read_f.readline()
-import pandas as pd
-data = pd.read_json('../../data/dev_data_pso.json', lines = True, encoding="utf8")
-print(len(data))
+#import pandas as pd
+#data = pd.read_json('../../data/dev_data_pso.json', lines = True, encoding="utf8")
+#print(len(data))
+#print('kkkkk')
+read_f = open('F:/wangyi_competition-master/Code/data/test_data_postag.json', encoding='UTF-8')  #将文件分成6份
+data = read_f.readlines()
+num = len(data)
+base = int(num / 6)
+#for i in range(6):
+write_f =  open('F:/wangyi_competition-master/Code/data/test_data_postag' + str(11)+ '.json', 'w', encoding='UTF-8')
+write_f.writelines(data[0:10])
+write_f.close()
+read_f.close()
+
+
+
+
+
+
+
+

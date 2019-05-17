@@ -4,7 +4,7 @@ import numpy as np
 from tqdm import tqdm 
 
 class process_data(object):
-    def __init__(self, train_data_path_list, test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path, valid_data_path = '/home/s1/wmg/wangyi_competition/Code/data/test_data_postag.json'): 
+    def __init__(self, train_data_path_list, test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path, valid_data_path = 'F:/wangyi_competition-master/Code/data/test_data_postag.json'): 
         print('初始化开始')
         self.train_data_path_list = train_data_path_list 
         self.test_data_path = test_data_path

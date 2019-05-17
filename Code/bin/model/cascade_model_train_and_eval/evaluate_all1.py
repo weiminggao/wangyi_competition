@@ -146,7 +146,7 @@ def commit_result(process_data, predict_spo_lists):
         line = schame_f.readline()
     schame_f.close()
 
-    result_f = open('.\commit_result1.json', 'w', encoding='UTF-8')
+    result_f = open('.\commit_result2.json', 'w', encoding='UTF-8')
     for i, (_, rows) in enumerate(process_data.valid_data.iterrows()):
        result = {}
        result['text'] = rows['text']
@@ -224,7 +224,7 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
             offset += 1
     except Exception as e:
         print('预测完毕')
-        with open('.\out1.json', 'w', encoding='UTF-8') as f:
+        with open('.\out2.json', 'w', encoding='UTF-8') as f:
             out = {}
             out['predict_spo_lists'] = predict_spo_lists
             json.dump(out, f, ensure_ascii = False)
@@ -252,21 +252,21 @@ if __name__ == '__main__':
     p_path = '../../../data/all_50_schemas'
     
     p_process_data = process_data(p_train_data_path_list, p_test_data_path, pre_word_embedding_path, \
-                                  baike_word_embedding_path, postag_path, p_path, 'F:/wangyi_competition-master/Code/data/test_data_postag1.json')
+                                  baike_word_embedding_path, postag_path, p_path, 'F:/wangyi_competition-master/Code/data/test_data_postag2.json')
     del p_process_data.train_data, p_process_data.test_data
     gc.collect()
     
     ps_process_data = process_data(ps_train_data_path_list, ps_test_data_path, pre_word_embedding_path, \
-                                   baike_word_embedding_path, postag_path, p_path, 'F:/wangyi_competition-master/Code/data/test_data_postag1.json')
+                                   baike_word_embedding_path, postag_path, p_path, 'F:/wangyi_competition-master/Code/data/test_data_postag2.json')
     del ps_process_data.train_data, ps_process_data.test_data
     gc.collect()
     
     pso_process_data = process_data(pso_train_data_path_list, pso_test_data_path, pre_word_embedding_path, \
-                                    baike_word_embedding_path, postag_path, p_path, 'F:/wangyi_competition-master/Code/data/test_data_postag1.json')
+                                    baike_word_embedding_path, postag_path, p_path, 'F:/wangyi_competition-master/Code/data/test_data_postag2.json')
     del pso_process_data.train_data, pso_process_data.test_data
     gc.collect()
     
-    print('F:/wangyi_competition-master/Code/data/test_data_postag1.json')
+    print('F:/wangyi_competition-master/Code/data/test_data_postag2.json')
     batch_size = 1
     out_len = 49
     evaluate(p_process_data, ps_process_data, pso_process_data)
