@@ -116,7 +116,7 @@ def stats(process_data, predict_spo_lists):#测试完毕
     for i, (_, rows) in enumerate(process_data.valid_data.iterrows()):
         real_num += len(rows['spo_list'])
         pred_num += len(predict_spo_lists[i]['spo_list'])
-        compare_spo_list = list(map(lambda x : {'predicated':x['predicate'], \
+        compare_spo_list = list(map(lambda x : {'predicate':x['predicate'], \
                                                 'subject':x['subject'], \
                                                 'object':x['object']}, rows['spo_list']))
 
@@ -127,15 +127,48 @@ def stats(process_data, predict_spo_lists):#测试完毕
     recall = pred_correct_num / real_num
     f1 = (2 * precision * recall)/(precision + recall)
     return precision, recall, f1
+
+def commit_result(process_data, predict_spo_lists):
+    import json
+    schame_f = open('/home/s1/wmg/wangyi_competition/Code/data/all_50_schemas', encoding='UTF-8')
+    schame = {}
+    line = schame_f.readline()
+    while line:
+        s_p_o = json.loads(line)
+        if s_p_o['predicate'] not in schame:
+            schame[s_p_o['predicate']] = {}
+            schame[s_p_o['predicate']]['subject_type'] = s_p_o['subject_type']
+            schame[s_p_o['predicate']]['object_type'] = s_p_o['object_type']
+        line = schame_f.readline()
+    schame_f.close()
+
+    result_f = open('./commit_result.json', 'w', encoding='UTF-8')
+    for i, (_, rows) in enumerate(process_data.valid_data.iterrows()):
+       result = {}
+       result['text'] = rows['text']
+       spo_list = predict_spo_lists[i]['spo_list']
+       for j in len(spo_list):
+           spo_list[j]['object_type'] = schema[spo_list[j]['predicate']]['object_type']
+           spo_list[j]['subject_type'] = schema[spo_list[j]['predicate']]['subject_type'] 
+       result['spo_list'] = spo_list
+       result_f.write(json.dumps(result, ensure_ascii = False) + '\n')
+    result_f.close()
     
 def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕        
     p_placeholder_list, p_model, p_sess = generate_model_and_sess('p', p_process_data, './cnn_model/cnn.ckpt2.99603e-06-43100')
     ps_placeholder_list, ps_model, ps_sess = generate_model_and_sess('ps', ps_process_data, './lstmcrf_ps_model/lstmcrf_ps.ckpt0.0014773-72100')
     pso_placeholder_list, pso_model, pso_sess = generate_model_and_sess('pso', pso_process_data, './lstmcrf_pso_model/lstmcrf_pso.ckpt0.208563-11900')#TODO
-        
-    p_test_data_iter = p_process_data.generate_batch(batch_size, p_process_data.valid_data, features = ['word_embedding', 'postag'], label_type = 'p')
-    ps_test_data_iter = ps_process_data.generate_batch(batch_size, ps_process_data.valid_data, features = ['word_embedding', 'postag'], label_type = 'p')
-    pso_test_data_iter = pso_process_data.generate_batch(batch_size, pso_process_data.valid_data, features = ['word_embedding', 'postag'], label_type = 'p')
+    
+    p_process_data.train_data = []
+    p_process_data.test_data = []
+    ps_process_data.train_data = []
+    ps_process_data.test_data = []
+    pso_process_data.train_data = []
+    pso_process_data.test_data = [] #释放内存    
+   
+    p_test_data_iter = p_process_data.generate_batch(batch_size, p_process_data.valid_data, features = ['word_embedding', 'postag'], label_type = None)
+    ps_test_data_iter = ps_process_data.generate_batch(batch_size, ps_process_data.valid_data, features = ['word_embedding', 'postag'], label_type = None)
+    pso_test_data_iter = pso_process_data.generate_batch(batch_size, pso_process_data.valid_data, features = ['word_embedding', 'postag'], label_type = None)
     
     p_data, p_label = p_test_data_iter.__next__()
     ps_data, ps_label = ps_test_data_iter.__next__()
@@ -175,7 +208,7 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
                         o_words, o_indexs = convert_psopred_to_wordsindex(o_list, pso_process_data.valid_data.iloc[offset * batch_size + i, :]['postag'], pso_process_data.word_dict)
                         for l, o in enumerate(o_indexs[0]):     #k表示第i句话的第j个关系的第k个s的第l个o
                             spo = {}
-                            spo['predicated'] = p_words[j]
+                            spo['predicate'] = p_words[j]
                             spo['subject'] = s_words[k]
                             spo['object'] = o_words[l]
                             predict_spo_list['spo_list'].append(spo)
@@ -186,8 +219,10 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
             offset += 1
     except Exception as e:
         print('预测完毕')
-        precision, recall, f1 = stats(p_process_data, predict_spo_lists)
-        print('cascade模型的precision:{}, recall:{}, f1:{}'.format(precision, recall, f1))
+        print(predict_spo_lists)
+        commit_result(p_process_data, predict_spo_lists)
+        #precision, recall, f1 = stats(p_process_data, predict_spo_lists)
+        #print('cascade模型的precision:{}, recall:{}, f1:{}'.format(precision, recall, f1))
             
     p_sess.close()
     ps_sess.close()

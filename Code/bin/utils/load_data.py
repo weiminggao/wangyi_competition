@@ -4,7 +4,7 @@ import numpy as np
 from tqdm import tqdm 
 
 class process_data(object):
-    def __init__(self, train_data_path_list, test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path, valid_data_path = '/home/s1/wmg/wangyi_competition/Code/data/dev_data_pso_distinct.json'): 
+    def __init__(self, train_data_path_list, test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path, valid_data_path = '/home/s1/wmg/wangyi_competition/Code/data/test_data_postag.json'): 
         print('初始化开始')
         self.train_data_path_list = train_data_path_list 
         self.test_data_path = test_data_path
@@ -213,7 +213,9 @@ class process_data(object):
         for feature in features:
             batch_features[feature] = self.feature_func_dict[feature](batch_data)
 #        labels = self.parse_p_labels(batch_data)
-        labels = self.label_func_dict[label_type](batch_data)
+        labels = []
+        if label_type != None:
+            labels = self.label_func_dict[label_type](batch_data)
         return batch_features, labels 	 	
 
     '''
