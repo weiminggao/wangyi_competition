@@ -32,13 +32,14 @@ def generate_model_placeholder_list(model_type, process_data):#测试完毕
                 (sequence_lengths, out_placeholder))
     elif model_type == 'pso':
         p_placeholder = tf.placeholder(tf.int32, [None])
-        s_placeholder = tf.placeholder(tf.int32, [None, 5])
+        s_placeholder = tf.placeholder(tf.int32, [None, 10])
         sequence_lengths = tf.placeholder(tf.int32, [None])
+        s_lengths = tf.placeholder(tf.int32, [None])
         out_placeholder = tf.placeholder(tf.int32, [None, process_data.max_len])
         batch_length = tf.placeholder(tf.int32)
         return ((word_placeholder, postag_placeholder, p_placeholder, s_placeholder, \
                  np.shape(process_data.word_embedding), np.shape(process_data.postag_embedding), np.shape(process_data.p_embedding), \
-                 process_data.word_embedding, process_data.postag_embedding, process_data.p_embedding, sequence_lengths, batch_length), \
+                 process_data.word_embedding, process_data.postag_embedding, process_data.p_embedding, sequence_lengths, s_lengths, batch_length), \
                 (sequence_lengths, out_placeholder))
     else:
         raise Exception('无效的模型')
@@ -96,15 +97,15 @@ def convert_psopred_to_wordsindex(pso_pred, postag, word_dict):#测试完毕
 
     for word_position in words_position:
         words = ''
-        pso_index = [0] * 5
+        pso_index = [0] * 10
         for j, position in enumerate(range(word_position[0], word_position[1])):
             words += postag[position]['word']
-            if postag[position]['word'] in word_dict and j < 5:
+            if postag[position]['word'] in word_dict and j < 10:
                 pso_index[j] = word_dict[postag[position]['word']]
         pso_indexs.append(pso_index)
         pso_words.append(words)
     
-    return pso_words, pso_indexs
+    return pso_words, [pso_indexs, list(map(lambda x : x[1] - x[0], words_position))]
 
 def stats(process_data, predict_spo_lists):#测试完毕
     pred_correct_num = 0
@@ -128,9 +129,9 @@ def stats(process_data, predict_spo_lists):#测试完毕
     return precision, recall, f1
     
 def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕        
-    p_placeholder_list, p_model, p_sess = generate_model_and_sess('p', p_process_data, './cnn_model\cnn.ckpt2.99603e-06-43100')
-    ps_placeholder_list, ps_model, ps_sess = generate_model_and_sess('ps', ps_process_data, './lstmcrf_ps_model\lstmcrf_ps.ckpt0.0014773-72100')
-    pso_placeholder_list, pso_model, pso_sess = generate_model_and_sess('pso', pso_process_data, './lstmcrf_pso_model\lstmcrf_pso.ckpt0.37789398-58900')#TODO
+    p_placeholder_list, p_model, p_sess = generate_model_and_sess('p', p_process_data, './cnn_model/cnn.ckpt2.99603e-06-43100')
+    ps_placeholder_list, ps_model, ps_sess = generate_model_and_sess('ps', ps_process_data, './lstmcrf_ps_model/lstmcrf_ps.ckpt0.0014773-72100')
+    pso_placeholder_list, pso_model, pso_sess = generate_model_and_sess('pso', pso_process_data, './lstmcrf_pso_model/lstmcrf_pso.ckpt0.208563-11900')#TODO
         
     p_test_data_iter = p_process_data.generate_batch(batch_size, p_process_data.valid_data, features = ['word_embedding', 'postag'], label_type = 'p')
     ps_test_data_iter = ps_process_data.generate_batch(batch_size, ps_process_data.valid_data, features = ['word_embedding', 'postag'], label_type = 'p')
@@ -161,17 +162,18 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
                                                              ps_placeholder_list[-1]:len(p_indexs)})
                 for j, s_list in enumerate(s_lists):    #j表示第i句话的第j个关系
                     s_words, s_indexs = convert_psopred_to_wordsindex(s_list, ps_process_data.valid_data.iloc[offset * batch_size + i, :]['postag'], pso_process_data.word_dict)
-                    if len(s_indexs) == 0:
+                    if len(s_indexs[0]) == 0:
                         continue
-                    o_lists = pso_sess.run(pso_model, feed_dict = {pso_placeholder_list[0]:np.tile(pso_data['word_embedding'][i:i + 1, :], (len(s_indexs), 1)), \
-                                                                   pso_placeholder_list[1]:np.tile(pso_data['postag'][i:i + 1, :], (len(s_indexs), 1)), \
-                                                                   pso_placeholder_list[2]:p_indexs[j:j + 1] * len(s_indexs), \
-                                                                   pso_placeholder_list[3]:s_indexs, \
-                                                                   pso_placeholder_list[-2]:[len(pso_process_data.valid_data.iloc[offset * batch_size + i, :]['postag'])] * len(s_indexs), \
-                                                                   pso_placeholder_list[-1]:len(s_indexs)})
+                    o_lists = pso_sess.run(pso_model, feed_dict = {pso_placeholder_list[0]:np.tile(pso_data['word_embedding'][i:i + 1, :], (len(s_indexs[0]), 1)), \
+                                                                   pso_placeholder_list[1]:np.tile(pso_data['postag'][i:i + 1, :], (len(s_indexs[0]), 1)), \
+                                                                   pso_placeholder_list[2]:p_indexs[j:j + 1] * len(s_indexs[0]), \
+                                                                   pso_placeholder_list[3]:s_indexs[0], \
+                                                                   pso_placeholder_list[-3]:[len(pso_process_data.valid_data.iloc[offset * batch_size + i, :]['postag'])] * len(s_indexs[0]), \
+                                                                   pso_placeholder_list[-2]:s_indexs[1],
+                                                                   pso_placeholder_list[-1]:len(s_indexs[0])})
                     for k, o_list in enumerate(o_lists):    #k表示第i句话的第j个关系的第k个s
                         o_words, o_indexs = convert_psopred_to_wordsindex(o_list, pso_process_data.valid_data.iloc[offset * batch_size + i, :]['postag'], pso_process_data.word_dict)
-                        for l, o in enumerate(o_indexs):     #k表示第i句话的第j个关系的第k个s的第l个o
+                        for l, o in enumerate(o_indexs[0]):     #k表示第i句话的第j个关系的第k个s的第l个o
                             spo = {}
                             spo['predicated'] = p_words[j]
                             spo['subject'] = s_words[k]
