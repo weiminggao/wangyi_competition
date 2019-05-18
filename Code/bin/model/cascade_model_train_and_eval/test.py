@@ -307,6 +307,7 @@
 #gc.collect()
 #while True:
 #    print('llll')
+'''
 commit_result_f = open('./commit_result.json', encoding='UTF-8')
 commit_result = commit_result_f.readlines()
 commit_result1_f = open('./commit_result1.json', encoding='UTF-8')
@@ -317,3 +318,21 @@ total_resut_f.writelines(total_result)
 commit_result_f.close()
 commit_result1_f.close()
 total_resut_f.close()
+'''
+#去重
+import json
+distinct_result_f = open('./predict_result/commit_result_test1_distinct.josn', 'w', encoding = 'UTF-8')
+result_f = open('./predict_result/commit_result_test1.json', encoding = 'UTF-8')
+line = result_f.readline()
+while line:
+     data = json.loads(line)
+     distinct_data = {}
+     distinct_data['text'] = data['text']
+     distinct_data['spo_list'] = []
+     for spo in data['spo_list']:
+         if spo not in distinct_data['spo_list']:
+             distinct_data['spo_list'].append(spo)
+     distinct_result_f.write(json.dumps(distinct_data, ensure_ascii = False) + '\n')
+     line = result_f.readline()
+result_f.close()
+distinct_result_f.close()

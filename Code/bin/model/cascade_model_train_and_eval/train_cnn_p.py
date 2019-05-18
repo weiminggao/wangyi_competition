@@ -31,7 +31,7 @@ def evaluate(process_data):
     test_data_iter = process_data.generate_batch(batch_size, process_data.test_data) 
     saver = tf.train.Saver()    
     with tf.Session() as sess:
-        saver.restore(sess, './cnn_model\cnn.ckpt2.99603e-06-43100')#tf.train.latest_checkpoint('./cnn_model'))
+        saver.restore(sess, './cnn_model/cnn.ckpt2.99603e-06-43100')#tf.train.latest_checkpoint('./cnn_model'))
         try:
             data, label = test_data_iter.__next__()
             while data:

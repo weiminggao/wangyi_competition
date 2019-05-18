@@ -4,7 +4,7 @@ import numpy as np
 from tqdm import tqdm 
 
 class process_data(object):
-    def __init__(self, train_data_path_list, test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path, valid_data_path = 'F:/wangyi_competition-master/Code/data/test_data_postag.json'): 
+    def __init__(self, train_data_path_list, test_data_path, pre_word_embedding_path, baike_word_embedding_path, postag_path, p_path, valid_data_path = None): 
         print('初始化开始')
         self.train_data_path_list = train_data_path_list 
         self.test_data_path = test_data_path
@@ -17,7 +17,8 @@ class process_data(object):
         for path in train_data_path_list[1:]: 
             self.train_data = pd.concat(self.train_data, pd.read_json(path, lines = True, encoding="utf8"))
         self.test_data = pd.read_json(self.test_data_path, lines = True, encoding="utf8") 
-        self.valid_data = pd.read_json(self.valid_data_path, lines = True, encoding="utf8")
+        if valid_data_path != None:
+            self.valid_data = pd.read_json(self.valid_data_path, lines = True, encoding="utf8")
         self.max_len, self.word_dict = self.generate_maxlen_and_worddict() 
         self.p_dict = self.generate_p_dict()
         self.postag_dict = self.generate_postag_dict()

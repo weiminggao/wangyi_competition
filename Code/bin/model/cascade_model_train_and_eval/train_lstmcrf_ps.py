@@ -54,7 +54,7 @@ def evaluate(process_data):
     
     with tf.Session() as sess:
 #        saver.restore(sess, tf.train.latest_checkpoint('./lstmcrf_ps_model'))
-        saver.restore(sess, './lstmcrf_ps_model\lstmcrf_ps.ckpt0.0014773-72100')
+        saver.restore(sess, './lstmcrf_ps_model/lstmcrf_ps.ckpt0.0014773-72100')
         decode_tags, best_score = tf.contrib.crf.crf_decode(ps_model, transition_params, sequence_lengths)
         try:
             data, label = test_data_iter.__next__()
