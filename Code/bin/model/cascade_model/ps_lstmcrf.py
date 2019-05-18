@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import tensorflow as tf
+import numpy as np
 def ps_lstmcrf_model(word, postag, p, word_embedding_size, postag_embedding_size, p_embedding_size, \
                      word_embedding, postag_embedding, p_embedding, sequence_lengths, batch_size):
     #embedding
@@ -10,6 +11,9 @@ def ps_lstmcrf_model(word, postag, p, word_embedding_size, postag_embedding_size
         postag_embed = tf.nn.embedding_lookup(postag_embedding, postag)
         p_embedding = tf.get_variable('p_embedding', initializer = p_embedding)
         p_embed = tf.nn.embedding_lookup(p_embedding, p)
+        sequence_lengths_embedding = tf.get_variable('sequence_lengths', initializer = np.tril(np.float32(np.ones(shape = [199, 198])), -1), trainable = False)
+        sequence_lengths_embed = tf.nn.embedding_lookup(sequence_lengths_embedding, sequence_lengths)
+        sequence_lengths_embed = tf.reshape(sequence_lengths_embed, (-1, 198, 1))
 
     #input_representation
     with tf.name_scope('input_representation'):
@@ -26,9 +30,13 @@ def ps_lstmcrf_model(word, postag, p, word_embedding_size, postag_embedding_size
         bias = tf.get_variable('bias', shape = [1])
         wmr = wmr + bias#加法是在最后一维上加
         diag = tf.reshape(wmr, [batch_size, -1])
-        diag = tf.nn.softmax(diag)
-        diag = tf.reshape(diag, [batch_size, 198, -1])
-        
+        diag = tf.exp(diag)
+        div = tf.exp(wmr) 
+        div = tf.multiply(div, sequence_lengths_embed)
+        div = tf.reduce_sum(div, axis = 1)
+        diag = tf.div(diag, div)
+        diag = tf.reshape(diag, [batch_size, 198, -1])        
+
     #bi_lstm
     with tf.name_scope('bi_lstm'):
         lstm_input = tf.multiply(input_representation, diag)
