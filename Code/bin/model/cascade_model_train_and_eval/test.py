@@ -296,14 +296,24 @@
 #a['l'].append(b)
 #with open('.\out.json', 'w', encoding='UTF-8') as f:
 #    json.dump(a, f)
-import pandas as pd
-import time
-import gc
-a = pd.read_json('F:/wangyi_competition-master/Code/data/test_data_postag.json', lines = True, encoding="utf8")
+#import pandas as pd
+#import time
+#import gc
+#a = pd.read_json('F:/wangyi_competition-master/Code/data/test_data_postag.json', lines = True, encoding="utf8")
 #while True:
 #    print('hhhhh')
-time.sleep(30)
-del a
-gc.collect()
-while True:
-    print('llll')
+#time.sleep(30)
+#del a
+#gc.collect()
+#while True:
+#    print('llll')
+commit_result_f = open('./commit_result.json', encoding='UTF-8')
+commit_result = commit_result_f.readlines()
+commit_result1_f = open('./commit_result1.json', encoding='UTF-8')
+commit_result1 = commit_result1_f .readlines()
+total_result = commit_result1 + commit_result
+total_resut_f = open('./total_result.json', 'w', encoding='UTF-8')
+total_resut_f.writelines(total_result)
+commit_result_f.close()
+commit_result1_f.close()
+total_resut_f.close()

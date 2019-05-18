@@ -49,13 +49,13 @@
 #data = pd.read_json('../../data/dev_data_pso.json', lines = True, encoding="utf8")
 #print(len(data))
 #print('kkkkk')
-read_f = open('F:/wangyi_competition-master/Code/data/test_data_postag.json', encoding='UTF-8')  #将文件分成6份
+read_f = open('../../data/test_data_postag.json', encoding='UTF-8')  #将文件分成6份
 data = read_f.readlines()
 num = len(data)
 base = int(num / 6)
 #for i in range(6):
-write_f =  open('F:/wangyi_competition-master/Code/data/test_data_postag' + str(11)+ '.json', 'w', encoding='UTF-8')
-write_f.writelines(data[0:10])
+write_f =  open('../../data/test_data_postag' + str(1)+ '.json', 'w', encoding='UTF-8')
+write_f.writelines(data[65868:num])
 write_f.close()
 read_f.close()
 

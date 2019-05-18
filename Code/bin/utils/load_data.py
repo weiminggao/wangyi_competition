@@ -121,6 +121,8 @@ class process_data(object):
         word_embedding = np.zeros([len(batch_data), self.max_len])
         for i, (_, row) in enumerate(batch_data.iterrows()):
             for j, ele in enumerate(row['postag']):
+                if j >= self.max_len:
+                    break
                 if ele['word'] in self.word_dict:
                     word_embedding[i][j] = self.word_dict[ele['word']]			
         return word_embedding 
@@ -138,13 +140,15 @@ class process_data(object):
         postag = np.zeros([len(batch_data), self.max_len])
         for i, (_, row) in enumerate(batch_data.iterrows()):
             for j, ele in enumerate(row['postag']):
+                if j>= self.max_len:
+                    break
                 postag[i][j] = self.postag_dict[ele['pos']]
         return postag
 
     def parse_sequence_lengths(self, batch_data):#测试完毕
         sequence_lengths = np.zeros(len(batch_data))
         for i, (_, row) in enumerate(batch_data.iterrows()):
-            sequence_lengths[i] = len(row['postag'])
+            sequence_lengths[i] = min(len(row['postag']), self.max_len)
         return sequence_lengths
     
     def parse_p(self, batch_data):#测试完毕

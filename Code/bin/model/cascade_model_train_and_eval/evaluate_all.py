@@ -110,7 +110,7 @@ def convert_psopred_to_wordsindex(pso_pred, postag, word_dict):#测试完毕
         pso_indexs.append(pso_index)
         pso_words.append(words)
     
-    return pso_words, [pso_indexs, list(map(lambda x : x[1] - x[0], words_position))]
+    return pso_words, [pso_indexs, list(map(lambda x : min(x[1] - x[0], 10), words_position))]
 
 def stats(process_data, predict_spo_lists):#测试完毕
     pred_correct_num = 0
@@ -134,7 +134,7 @@ def stats(process_data, predict_spo_lists):#测试完毕
     return precision, recall, f1
 
 def commit_result(process_data, predict_spo_lists):
-    schame_f = open('F:/wangyi_competition-master/Code/data/all_50_schemas', encoding='UTF-8')
+    schame_f = open('../../../data/all_50_schemas', encoding='UTF-8')
     schame = {}
     line = schame_f.readline()
     while line:
@@ -146,7 +146,7 @@ def commit_result(process_data, predict_spo_lists):
         line = schame_f.readline()
     schame_f.close()
 
-    result_f = open('.\commit_result1.json', 'w', encoding='UTF-8')
+    result_f = open('./commit_result_test1.json', 'w+', encoding='UTF-8')
     for i, (_, rows) in enumerate(process_data.valid_data.iterrows()):
        result = {}
        result['text'] = rows['text']
@@ -184,6 +184,7 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
     try:
         while p_data:
             print(offset)
+            print(len(p_data['word_embedding'][0]))
             p_lists = p_sess.run(p_model, feed_dict = {p_placeholder_list[0]:p_data['word_embedding'], \
                                                        p_placeholder_list[1]:p_data['postag']})
             for i, p_list in enumerate(p_lists): #i表示第i句话
@@ -196,7 +197,7 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
                 s_lists = ps_sess.run(ps_model, feed_dict = {ps_placeholder_list[0]:np.tile(ps_data['word_embedding'][i:i + 1, :], (len(p_indexs), 1)), \
                                                              ps_placeholder_list[1]:np.tile(ps_data['postag'][i:i + 1, :], (len(p_indexs), 1)), \
                                                              ps_placeholder_list[2]:p_indexs, \
-                                                             ps_placeholder_list[-2]:[len(ps_process_data.valid_data.iloc[offset * batch_size + i, :]['postag'])] * len(p_indexs), \
+                                                             ps_placeholder_list[-2]:[min(ps_process_data.max_len, len(ps_process_data.valid_data.iloc[offset * batch_size + i, :]['postag']))] * len(p_indexs), \
                                                              ps_placeholder_list[-1]:len(p_indexs)})
                 for j, s_list in enumerate(s_lists):    #j表示第i句话的第j个关系
                     s_words, s_indexs = convert_psopred_to_wordsindex(s_list, ps_process_data.valid_data.iloc[offset * batch_size + i, :]['postag'], pso_process_data.word_dict)
@@ -206,7 +207,7 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
                                                                    pso_placeholder_list[1]:np.tile(pso_data['postag'][i:i + 1, :], (len(s_indexs[0]), 1)), \
                                                                    pso_placeholder_list[2]:p_indexs[j:j + 1] * len(s_indexs[0]), \
                                                                    pso_placeholder_list[3]:s_indexs[0], \
-                                                                   pso_placeholder_list[-3]:[len(pso_process_data.valid_data.iloc[offset * batch_size + i, :]['postag'])] * len(s_indexs[0]), \
+                                                                   pso_placeholder_list[-3]:[min(pso_process_data.max_len, len(pso_process_data.valid_data.iloc[offset * batch_size + i, :]['postag']))] * len(s_indexs[0]), \
                                                                    pso_placeholder_list[-2]:s_indexs[1],
                                                                    pso_placeholder_list[-1]:len(s_indexs[0])})
                     for k, o_list in enumerate(o_lists):    #k表示第i句话的第j个关系的第k个s
@@ -217,6 +218,7 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
                             spo['subject'] = s_words[k]
                             spo['object'] = o_words[l]
                             predict_spo_list['spo_list'].append(spo)
+                print(predict_spo_list)
                 predict_spo_lists.append(predict_spo_list)
             p_data, p_label = p_test_data_iter.__next__()
             ps_data, ps_label = ps_test_data_iter.__next__()
@@ -224,7 +226,7 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
             offset += 1
     except Exception as e:
         print('预测完毕')
-        with open('.\out1.json', 'w', encoding='UTF-8') as f:
+        with open('./out_test1.json', 'w+', encoding='UTF-8') as f:
             out = {}
             out['predict_spo_lists'] = predict_spo_lists
             json.dump(out, f, ensure_ascii = False)
@@ -252,21 +254,20 @@ if __name__ == '__main__':
     p_path = '../../../data/all_50_schemas'
     
     p_process_data = process_data(p_train_data_path_list, p_test_data_path, pre_word_embedding_path, \
-                                  baike_word_embedding_path, postag_path, p_path, 'F:/wangyi_competition-master/Code/data/test_data_postag1.json')
+                                  baike_word_embedding_path, postag_path, p_path, '../../../data/test1_data_postag.json')
     del p_process_data.train_data, p_process_data.test_data
     gc.collect()
     
     ps_process_data = process_data(ps_train_data_path_list, ps_test_data_path, pre_word_embedding_path, \
-                                   baike_word_embedding_path, postag_path, p_path, 'F:/wangyi_competition-master/Code/data/test_data_postag1.json')
+                                   baike_word_embedding_path, postag_path, p_path, '../../../data/test1_data_postag.json')
     del ps_process_data.train_data, ps_process_data.test_data
     gc.collect()
     
     pso_process_data = process_data(pso_train_data_path_list, pso_test_data_path, pre_word_embedding_path, \
-                                    baike_word_embedding_path, postag_path, p_path, 'F:/wangyi_competition-master/Code/data/test_data_postag1.json')
+                                    baike_word_embedding_path, postag_path, p_path, '../../../data/test1_data_postag.json')
     del pso_process_data.train_data, pso_process_data.test_data
     gc.collect()
     
-    print('F:/wangyi_competition-master/Code/data/test_data_postag1.json')
     batch_size = 1
     out_len = 49
     evaluate(p_process_data, ps_process_data, pso_process_data)
