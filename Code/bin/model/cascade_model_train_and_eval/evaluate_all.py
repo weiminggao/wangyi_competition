@@ -163,7 +163,7 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
     del p_process_data.word_embedding, p_process_data.postag_embedding
     gc.collect()
     
-    ps_placeholder_list, ps_model, ps_sess = generate_model_and_sess('ps', ps_process_data, './lstmcrf_ps_model/lstmcrf_ps.ckpt0.0014773-72100')
+    ps_placeholder_list, ps_model, ps_sess = generate_model_and_sess('ps', ps_process_data, './lstmcrf_ps_model/lstmcrf_ps.ckpt0.05262637-8600')
     del ps_process_data.word_embedding, ps_process_data.postag_embedding
     gc.collect()
     
