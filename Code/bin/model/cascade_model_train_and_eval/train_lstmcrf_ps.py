@@ -7,7 +7,7 @@ sys.path.append('../cascade_model')
 from load_data import process_data
 import ps_lstmcrf
 
-RESTORE = False
+RESTORE = True
 
 def evaluate(process_data):
     pred_correct_num = 0
@@ -89,7 +89,7 @@ def train(learning_rate, batch_size, epoch, process_data):
     
     train_data_iter = process_data.generate_batch(batch_size, process_data.train_data,  \
                                                   features = ['word_embedding', 'postag', 'p', 'sequence_lengths'], label_type = 's')
-    saver = tf.train.Saver(max_to_keep = 10)	
+    saver = tf.train.Saver(max_to_keep = 20)	
     
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())
@@ -110,6 +110,8 @@ def train(learning_rate, batch_size, epoch, process_data):
                     data, label = train_data_iter.__next__()
                     if step % 100 == 0:
                         print(step)
+                    if step % 2200 == 0:
+                        print(step)
                         saver.save(sess, './lstmcrf_ps_model/lstmcrf_ps.ckpt'+str(_error), global_step = step, write_meta_graph=False)
                         print('step:{}, error:{}'.format(step, _error))
             except Exception as e:
@@ -127,6 +129,6 @@ if __name__ == '__main__':
     
     batch_size = 128
     learning_rate = 0.001    #0.0000001收敛较慢
-    epoch = 100
+    epoch = 20
     #train(learning_rate, batch_size, epoch, process_data)
     evaluate(process_data)

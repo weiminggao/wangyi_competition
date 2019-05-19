@@ -146,7 +146,7 @@ def commit_result(process_data, predict_spo_lists):
         line = schame_f.readline()
     schame_f.close()
 
-    result_f = open('./commit_result_test1.json', 'w', encoding='UTF-8')
+    result_f = open('./commit_result_test11.json', 'w', encoding='UTF-8')
     for i, (_, rows) in enumerate(process_data.valid_data.iterrows()):
        result = {}
        result['text'] = rows['text']
@@ -163,7 +163,7 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
     del p_process_data.word_embedding, p_process_data.postag_embedding
     gc.collect()
     
-    ps_placeholder_list, ps_model, ps_sess = generate_model_and_sess('ps', ps_process_data, './lstmcrf_ps_model/lstmcrf_ps.ckpt0.05262637-8600')
+    ps_placeholder_list, ps_model, ps_sess = generate_model_and_sess('ps', ps_process_data, './lstmcrf_ps_model/lstmcrf_ps.ckpt0.104050994-8700')
     del ps_process_data.word_embedding, ps_process_data.postag_embedding
     gc.collect()
     
@@ -183,7 +183,8 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
     offset = 0
     try:
         while p_data:
-            print(offset)
+            if offset % 1000 == 0:
+                print(offset)
             p_lists = p_sess.run(p_model, feed_dict = {p_placeholder_list[0]:p_data['word_embedding'], \
                                                        p_placeholder_list[1]:p_data['postag']})
             for i, p_list in enumerate(p_lists): #i表示第i句话
@@ -200,8 +201,8 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
                                                              ps_placeholder_list[-2]:[min(ps_process_data.max_len, len(ps_process_data.valid_data.iloc[offset * batch_size + i, :]['postag']))] * len(p_indexs), \
                                                              ps_placeholder_list[-1]:len(p_indexs)})
                 for j, s_list in enumerate(s_lists):    #j表示第i句话的第j个关系
-                    print(s_list)
-                    print(p_words[j])
+                    #print(s_list)
+                    #print(p_words[j])
                     s_words, s_indexs = convert_psopred_to_wordsindex(s_list, ps_process_data.valid_data.iloc[offset * batch_size + i, :]['postag'], pso_process_data.word_dict)
                     if len(s_indexs[0]) == 0:
                         print('no s')
@@ -221,7 +222,7 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
                             spo['subject'] = s_words[k]
                             spo['object'] = o_words[l]
                             predict_spo_list['spo_list'].append(spo)
-                print(predict_spo_list)
+                #print(predict_spo_list)
                 predict_spo_lists.append(predict_spo_list)
             p_data, p_label = p_test_data_iter.__next__()
             ps_data, ps_label = ps_test_data_iter.__next__()

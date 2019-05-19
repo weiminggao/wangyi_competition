@@ -321,8 +321,8 @@ total_resut_f.close()
 '''
 #去重
 import json
-distinct_result_f = open('./predict_result/commit_result_test1_distinct.josn', 'w', encoding = 'UTF-8')
-result_f = open('./predict_result/commit_result_test1.json', encoding = 'UTF-8')
+distinct_result_f = open('./predict_result/commit_result_test11_distinct.josn', 'w', encoding = 'UTF-8')
+result_f = open('./predict_result/commit_result_test11.json', encoding = 'UTF-8')
 line = result_f.readline()
 while line:
      data = json.loads(line)
