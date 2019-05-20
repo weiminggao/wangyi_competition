@@ -146,7 +146,7 @@ def commit_result(process_data, predict_spo_lists):
         line = schame_f.readline()
     schame_f.close()
 
-    result_f = open('./commit_result_test11.json', 'w', encoding='UTF-8')
+    result_f = open('./commit_result_test.json', 'w', encoding='UTF-8')
     for i, (_, rows) in enumerate(process_data.valid_data.iterrows()):
        result = {}
        result['text'] = rows['text']
@@ -192,7 +192,7 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
                 predict_spo_list['spo_list']= []
                 p_words, p_indexs = convert_ppred_to_wordsindex(p_list, p_process_data.p_dict)
                 if len(p_indexs) == 0:
-                    print('no p')
+                    #print('no p')
                     predict_spo_lists.append(predict_spo_list)
                     continue
                 s_lists = ps_sess.run(ps_model, feed_dict = {ps_placeholder_list[0]:np.tile(ps_data['word_embedding'][i:i + 1, :], (len(p_indexs), 1)), \
@@ -205,7 +205,7 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
                     #print(p_words[j])
                     s_words, s_indexs = convert_psopred_to_wordsindex(s_list, ps_process_data.valid_data.iloc[offset * batch_size + i, :]['postag'], pso_process_data.word_dict)
                     if len(s_indexs[0]) == 0:
-                        print('no s')
+                        #print('no s')
                         continue
                     o_lists = pso_sess.run(pso_model, feed_dict = {pso_placeholder_list[0]:np.tile(pso_data['word_embedding'][i:i + 1, :], (len(s_indexs[0]), 1)), \
                                                                    pso_placeholder_list[1]:np.tile(pso_data['postag'][i:i + 1, :], (len(s_indexs[0]), 1)), \
@@ -230,7 +230,7 @@ def evaluate(p_process_data, ps_process_data, pso_process_data):#测试完毕
             offset += 1
     except Exception as e:
         print('预测完毕')
-        with open('./out_test1.json', 'w', encoding='UTF-8') as f:
+        with open('./out_test.json', 'w', encoding='UTF-8') as f:
             out = {}
             out['predict_spo_lists'] = predict_spo_lists
             json.dump(out, f, ensure_ascii = False)
@@ -258,17 +258,17 @@ if __name__ == '__main__':
     p_path = '../../../data/all_50_schemas'
     
     p_process_data = process_data(p_train_data_path_list, p_test_data_path, pre_word_embedding_path, \
-                                  baike_word_embedding_path, postag_path, p_path, '../../../data/test1_data_postag.json')
+                                  baike_word_embedding_path, postag_path, p_path, '../../../data/test_data_postag.json')
     del p_process_data.train_data, p_process_data.test_data
     gc.collect()
     
     ps_process_data = process_data(ps_train_data_path_list, ps_test_data_path, pre_word_embedding_path, \
-                                   baike_word_embedding_path, postag_path, p_path, '../../../data/test1_data_postag.json')
+                                   baike_word_embedding_path, postag_path, p_path, '../../../data/test_data_postag.json')
     del ps_process_data.train_data, ps_process_data.test_data
     gc.collect()
     
     pso_process_data = process_data(pso_train_data_path_list, pso_test_data_path, pre_word_embedding_path, \
-                                    baike_word_embedding_path, postag_path, p_path, '../../../data/test1_data_postag.json')
+                                    baike_word_embedding_path, postag_path, p_path, '../../../data/test_data_postag.json')
     del pso_process_data.train_data, pso_process_data.test_data
     gc.collect()
     
